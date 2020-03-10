@@ -1,0 +1,5 @@
+keras
+numpy
+ipfml
+pandas
+scikit-learn
