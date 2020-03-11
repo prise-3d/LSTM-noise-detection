@@ -150,7 +150,7 @@ def main():
 
                 for index_b, values in enumerate(blocks_entropy[index]):
 
-                    if type(values) is list:
+                    if type(values) is list or np.ndarray:
 
                         for index_v, v in enumerate(values):
                             f.write(str(v))

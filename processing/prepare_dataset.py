@@ -79,14 +79,14 @@ def main():
             sequence_data = []
             # one element is removed using this function (first element of list for computing first difference)
             # TODO : remove previous and add new
-            nb_elements = 0
+            
             for i, index in enumerate(image_indices):
                 
                 values = values_list[i].split(' ')
                 nb_elements = len(values)
 
-                for v in values:
-                    sequence_data.append(v)
+                # append new sequence
+                sequence_data.append(values)
 
                 if i + 1 >= p_sequence:
 
@@ -94,10 +94,15 @@ def main():
 
                     line = str(label) + ';'
 
-                    for index_x, x in enumerate(sequence_data):
-                        line += str(x)
+                    for index_v, values in enumerate(sequence_data):
 
-                        if index_x + 1 < len(sequence_data):
+                        for index_x, x in enumerate(values):
+                            line += str(x)
+
+                            if index_x + 1 < len(values):
+                                line += ' '
+
+                        if index_v + 1 < len(sequence_data):
                             line += ';'
 
                     line += '\n'
@@ -108,7 +113,7 @@ def main():
                         f_test.write(line)
 
                     # del previous element
-                    del sequence_data[0:nb_elements]
+                    del sequence_data[0]
 
     f_test.close()
     f_train.close()    

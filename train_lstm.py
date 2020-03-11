@@ -15,14 +15,37 @@ import sklearn
 # def auc(y_true, y_pred):
 #     return roc_auc_score(y_true, y_pred)
 
-def create_model(input_length):
+def build_input(df):
+    """Convert dataframe to numpy array input with timesteps as float array
+    
+    Arguments:
+        df: {pd.Dataframe} -- Dataframe input
+    
+    Returns:
+        {np.ndarray} -- input LSTM data as numpy array
+    """
+
+    arr = df.to_numpy()
+
+    final_arr = []
+    for v in arr:
+        v_data = []
+        for vv in v:
+            v_data.append(np.array(vv, 'float'))
+        
+        final_arr.append(v_data)
+
+    return np.array(final_arr)
+
+
+def create_model(input_shape):
     print ('Creating model...')
     model = Sequential()
-    model.add(Embedding(input_dim = 1000, output_dim = 50, input_length=input_length))
-    model.add(LSTM(output_dim=256, activation='sigmoid', inner_activation='hard_sigmoid', return_sequences=True))
+    #model.add(Embedding(input_dim = 1000, output_dim = 50, input_length=input_length))
+    model.add(LSTM(input_shape=input_shape, output_dim=256, activation='sigmoid', inner_activation='hard_sigmoid', return_sequences=True))
     model.add(Dropout(0.5))
-    # model.add(LSTM(output_dim=256, activation='sigmoid', inner_activation='hard_sigmoid'))
-    # model.add(Dropout(0.5))
+    model.add(LSTM(output_dim=256, activation='sigmoid', inner_activation='hard_sigmoid'))
+    model.add(Dropout(0.5))
     model.add(Dense(1, activation='sigmoid'))
 
     print ('Compiling...')
@@ -31,8 +54,6 @@ def create_model(input_length):
                   metrics=['accuracy'])
 
     return model
-
-
 
 
 def main():
@@ -54,14 +75,18 @@ def main():
 
     train_dataset = sklearn.utils.shuffle(train_dataset)
     test_dataset = sklearn.utils.shuffle(test_dataset)
-    
-    X_train = train_dataset.loc[:, 1:].astype('float')
+
+    X_train = train_dataset.loc[:, 1:].apply(lambda x: x.str.split(' '))
+    X_train = build_input(X_train)
     y_train = train_dataset.loc[:, 0].astype('int')
 
-    X_test = test_dataset.loc[:, 1:].astype('float')
+    X_test = test_dataset.loc[:, 1:].apply(lambda x: x.str.split(' '))
+    X_test = build_input(X_test)
     y_test = test_dataset.loc[:, 0].astype('int')
 
-    model = create_model(X_train.shape[1])
+    input_shape = (X_train.shape[1], X_train.shape[2])
+    print('Training data input shape', input_shape)
+    model = create_model(input_shape)
     model.summary()
 
     # print ('Fitting model...')

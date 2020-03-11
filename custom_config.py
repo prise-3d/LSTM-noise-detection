@@ -16,6 +16,6 @@ output_datasets                 = os.path.join(output_data_folder, 'datasets')
 
 # file or extensions
 
-features_choices_labels         = ['svd_entropy', 'mu_sigma']
+features_choices_labels         = ['svd_entropy', 'mu_sigma', 'svd', 'svd_norm']
 
 # parameters
