@@ -11,11 +11,15 @@ context_vars = vars()
 output_data_folder              = 'data'
 output_data_generated           = os.path.join(output_data_folder, 'generated')
 output_datasets                 = os.path.join(output_data_folder, 'datasets')
+output_results_folder           = os.path.join(output_data_folder, 'results')
+output_zones_learned            = os.path.join(output_data_folder, 'learned_zones')
+output_models                   = os.path.join(output_data_folder, 'saved_models')
 ## noisy_folder                    = 'noisy'
 ## not_noisy_folder                = 'notNoisy'
 
 # file or extensions
 
-features_choices_labels         = ['svd_entropy', 'mu_sigma', 'svd', 'svd_norm']
+features_choices_labels         = ['svd_entropy', 'svd_entropy_norm', 'mu_sigma', 'svd', 'svd_norm', 'stats_luminance']
+results_filename                = 'results.csv'
 
 # parameters

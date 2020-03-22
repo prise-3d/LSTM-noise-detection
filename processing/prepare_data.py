@@ -149,9 +149,10 @@ def main():
                 f.write(';')
 
                 for index_b, values in enumerate(blocks_entropy[index]):
-
-                    if type(values) is list or np.ndarray:
-
+                    
+                    # check if single values or multiple
+                    if type(values) is list or(np.ndarray and not np.float64):
+                        
                         for index_v, v in enumerate(values):
                             f.write(str(v))
 

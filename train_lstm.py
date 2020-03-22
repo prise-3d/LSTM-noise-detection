@@ -2,15 +2,19 @@
 import argparse
 import numpy as np
 import pandas as pd
+import os
 
 # dl imports
-from keras.layers import Dense, Dropout, LSTM, Embedding
+from keras.layers import Dense, Dropout, LSTM, Embedding, GRU
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import Sequential
 from sklearn.metrics import roc_auc_score
 import tensorflow as tf
 from keras import backend as K
 import sklearn
+from joblib import dump
+
+import custom_config as cfg
 
 # def auc(y_true, y_pred):
 #     return roc_auc_score(y_true, y_pred)
@@ -31,7 +35,9 @@ def build_input(df):
     for v in arr:
         v_data = []
         for vv in v:
-            v_data.append(np.array(vv, 'float'))
+            #scaled_vv = np.array(vv, 'float') - np.mean(np.array(vv, 'float'))
+            #v_data.append(scaled_vv)
+            v_data.append(vv)
         
         final_arr.append(v_data)
 
@@ -42,9 +48,9 @@ def create_model(input_shape):
     print ('Creating model...')
     model = Sequential()
     #model.add(Embedding(input_dim = 1000, output_dim = 50, input_length=input_length))
-    model.add(LSTM(input_shape=input_shape, output_dim=256, activation='sigmoid', inner_activation='hard_sigmoid', return_sequences=True))
+    model.add(GRU(input_shape=input_shape, output_dim=128, activation='sigmoid', inner_activation='hard_sigmoid', return_sequences=True))
     model.add(Dropout(0.5))
-    model.add(LSTM(output_dim=256, activation='sigmoid', inner_activation='hard_sigmoid'))
+    model.add(GRU(output_dim=128, activation='sigmoid', inner_activation='hard_sigmoid'))
     model.add(Dropout(0.5))
     model.add(Dense(1, activation='sigmoid'))
 
@@ -70,19 +76,33 @@ def main():
     p_test         = args.test
     p_output       = args.output
 
-    train_dataset = pd.read_csv(p_train, header=None, sep=';')
-    test_dataset = pd.read_csv(p_test, header=None, sep=';')
+    dataset_train = pd.read_csv(p_train, header=None, sep=';')
+    dataset_test = pd.read_csv(p_test, header=None, sep=';')
 
-    train_dataset = sklearn.utils.shuffle(train_dataset)
-    test_dataset = sklearn.utils.shuffle(test_dataset)
+    # balancing dataset (50% for each class)
+    noisy_df_train = dataset_train[dataset_train.ix[:, 0] == 1]
+    not_noisy_df_train = dataset_train[dataset_train.ix[:, 0] == 0]
+    nb_noisy_train = len(noisy_df_train.index)
 
-    X_train = train_dataset.loc[:, 1:].apply(lambda x: x.str.split(' '))
+    noisy_df_test = dataset_test[dataset_test.ix[:, 0] == 1]
+    not_noisy_df_test = dataset_test[dataset_test.ix[:, 0] == 0]
+    nb_noisy_test = len(noisy_df_test.index)
+
+    final_df_train = pd.concat([not_noisy_df_train[0:nb_noisy_train], noisy_df_train])
+    final_df_test = pd.concat([not_noisy_df_test[0:nb_noisy_test], noisy_df_test])
+
+    # shuffle data
+    final_df_train = sklearn.utils.shuffle(final_df_train)
+    final_df_test = sklearn.utils.shuffle(final_df_test)
+
+    # split dataset into X_train, y_train, X_test, y_test
+    X_train = final_df_train.loc[:, 1:].apply(lambda x: x.astype(str).str.split(' '))
     X_train = build_input(X_train)
-    y_train = train_dataset.loc[:, 0].astype('int')
+    y_train = final_df_train.loc[:, 0].astype('int')
 
-    X_test = test_dataset.loc[:, 1:].apply(lambda x: x.str.split(' '))
+    X_test = final_df_test.loc[:, 1:].apply(lambda x: x.astype(str).str.split(' '))
     X_test = build_input(X_test)
-    y_test = test_dataset.loc[:, 0].astype('int')
+    y_test = final_df_test.loc[:, 0].astype('int')
 
     input_shape = (X_train.shape[1], X_train.shape[2])
     print('Training data input shape', input_shape)
@@ -90,11 +110,29 @@ def main():
     model.summary()
 
     # print ('Fitting model...')
-    hist = model.fit(X_train, y_train, batch_size=64, epochs=10, validation_split = 0.3, verbose = 1)
+    hist = model.fit(X_train, y_train, batch_size=64, epochs=10, validation_split = 0.2, verbose = 1)
 
-    score, acc = model.evaluate(X_test, y_test, batch_size=1)
-    print('Test score:', score)
-    print('Test accuracy:', acc)
+
+    train_score, train_acc = model.evaluate(X_train, y_train, batch_size=1)
+    test_score, test_acc = model.evaluate(X_test, y_test, batch_size=1)
+    
+    print('Test score:', test_score)
+    print('Test accuracy:', test_acc)
+
+    # save model results
+    if not os.path.exists(cfg.output_results_folder):
+        os.makedirs(cfg.output_results_folder)
+
+    results_filename = os.path.join(cfg.output_results_folder, cfg.results_filename)
+
+    with open(results_filename, 'a') as f:
+        f.write(p_output + ';' + str(train_acc) + ';' + str(test_acc) + '\n')
+
+    # save model using joblib
+    if not os.path.exists(cfg.output_models):
+        os.makedirs(cfg.output_models)
+
+    dump(model, os.path.join(cfg.output_models, p_output + '.joblib'))
 
 if __name__ == "__main__":
     main()
