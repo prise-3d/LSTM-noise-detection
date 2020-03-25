@@ -9,7 +9,7 @@ def _extract_svd(image, params):
     begin, end = tuple(map(int, params.split(',')))
 
     sigma = transform.get_LAB_L_SVD_s(image)
-    return sigma[begin:end]
+    return list(sigma[begin:end])
 
 def _extract_stats_luminance(image, params):
     L = transform.get_LAB_L(image)
@@ -20,7 +20,7 @@ def _extract_svd_norm(image, params):
     begin, end = tuple(map(int, params.split(',')))
 
     sigma = transform.get_LAB_L_SVD_s(image)
-    return normalize_arr(sigma[begin:end])
+    return list(normalize_arr(sigma[begin:end]))
 
 def _extract_mu_sigma(image, params):
     image = np.array(image)
