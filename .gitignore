@@ -1,0 +1,14 @@
+# project data
+data
+
+# simulate_models.csv
+dataset
+
+.python-version
+__pycache__
+
+# by default avoid model files and png files
+.vscode
+
+# simulate models .csv file
+simulate_models*.csv
