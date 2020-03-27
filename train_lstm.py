@@ -8,7 +8,7 @@ import os
 from keras.layers import Dense, Dropout, LSTM, Embedding, GRU
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import Sequential
-from sklearn.metrics import roc_auc_score
+from sklearn.metrics import roc_auc_score, accuracy_score
 import tensorflow as tf
 from keras import backend as K
 import sklearn
@@ -110,14 +110,24 @@ def main():
     model.summary()
 
     # print ('Fitting model...')
-    hist = model.fit(X_train, y_train, batch_size=64, epochs=10, validation_split = 0.2, verbose = 1)
+    hist = model.fit(X_train, y_train, batch_size=32, epochs=10, validation_split = 0.2, verbose = 1)
 
 
-    train_score, train_acc = model.evaluate(X_train, y_train, batch_size=1)
-    test_score, test_acc = model.evaluate(X_test, y_test, batch_size=1)
+    #train_score, train_acc = model.evaluate(X_train, y_train, batch_size=1)
+    y_train_predict = model.predict_classes(X_train)
+    y_test_predict = model.predict_classes(X_test)
+
+    auc_train = roc_auc_score(y_train, y_train_predict)
+    auc_test = roc_auc_score(y_test, y_test_predict)
+
+    acc_train = accuracy_score(y_train, y_train_predict)
+    acc_test = accuracy_score(y_test, y_test_predict)
     
-    print('Test score:', test_score)
-    print('Test accuracy:', test_acc)
+    
+    print('Train ACC:', acc_train)
+    print('Train AUC', auc_train)
+    print('Test ACC:', acc_test)
+    print('Test AUC:', auc_test)
 
     # save model results
     if not os.path.exists(cfg.output_results_folder):
@@ -126,7 +136,7 @@ def main():
     results_filename = os.path.join(cfg.output_results_folder, cfg.results_filename)
 
     with open(results_filename, 'a') as f:
-        f.write(p_output + ';' + str(train_acc) + ';' + str(test_acc) + '\n')
+        f.write(p_output + ';' + str(acc_train) + ';' + str(auc_train) + ';' + str(acc_test) + ';' + str(auc_test) + '\n')
 
     # save model using joblib
     if not os.path.exists(cfg.output_models):

@@ -42,7 +42,7 @@ def write_progress(progress):
     print(output_str)
     sys.stdout.write("\033[F")
 
-def display_estimated_thresholds(scene, estimated, humans, zones_learned=None):
+def display_estimated_thresholds(scene, estimated, humans, max_index, zones_learned=None):
     
     colors = ['C0', 'C1', 'C2', 'C3']
     
@@ -69,7 +69,8 @@ def display_estimated_thresholds(scene, estimated, humans, zones_learned=None):
             if x in zones_learned:
                 plt.scatter(x, estimation, s=30, marker='H', color='red')
     
-    
+
+    plt.ylim(0, max_index) 
     plt.xticks(zones_indices)
     plt.title('Comparisons of estimated vs human thresholds for ' + scene, fontsize=22)
     plt.legend(fontsize=20)
@@ -205,7 +206,7 @@ def main():
                     zones_learned = data[1:]
 
     # 6. display results
-    display_estimated_thresholds(scene, estimated_thresholds, human_thresholds, zones_learned)
+    display_estimated_thresholds(scene, estimated_thresholds, human_thresholds, image_indices[-1], zones_learned)
 
 if __name__== "__main__":
     main()
