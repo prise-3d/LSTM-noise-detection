@@ -84,6 +84,7 @@ def main():
     parser.add_argument('--method', type=str, help='method name to used', choices=cfg.features_choices_labels, default=cfg.features_choices_labels[0])
     parser.add_argument('--params', type=str, help='param of the method used', default="")
     parser.add_argument('--sequence', type=int, help='sequence length expected')
+    parser.add_argument('--n_stop', type=int, help='n elements for stopping criteria', default=1)
     parser.add_argument('--imnorm', type=int, help="specify if image is normalized before computing something", default=0, choices=[0, 1])
     parser.add_argument('--learned_zones', type=str, help="Filename which specifies if zones are learned or not and which zones", default="")
     parser.add_argument('--scene', type=str, help='Scene index to use', choices=cfg.scenes_indices)
@@ -94,6 +95,7 @@ def main():
     p_method   = args.method
     p_params   = args.params
     p_sequence = args.sequence
+    p_n_stop   = args.n_stop
     p_imnorm   = args.imnorm
     p_zones    = args.learned_zones
     p_scene    = args.scene
@@ -115,6 +117,7 @@ def main():
 
 
     estimated_thresholds = []
+    n_estimated_thresholds = []
     human_thresholds = []
 
     # 3. retrieve human_thresholds
@@ -150,6 +153,7 @@ def main():
     for zone in zones_list:
         blocks_sequence.append([])
         estimated_thresholds.append(None)
+        n_estimated_thresholds.append(0)
 
     for img_i, img_path in enumerate(images_path):
 
@@ -177,7 +181,13 @@ def main():
                     #print(index, ':', image_indices[img_i], '=>', prob)
 
                     if prob < 0.5:
-                        estimated_thresholds[index] = image_indices[img_i]
+                        n_estimated_thresholds[index] += 1
+
+                        # if same number of detection is attempted
+                        if n_estimated_thresholds == p_n_stop:
+                            estimated_thresholds[index] = image_indices[img_i]
+                    else:
+                        n_estimated_thresholds[index] = 0
 
                     # delete first element (just like sliding window)
                     del blocks_sequence[index][0]
