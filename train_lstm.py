@@ -16,8 +16,6 @@ from joblib import dump
 
 import custom_config as cfg
 
-# def auc(y_true, y_pred):
-#     return roc_auc_score(y_true, y_pred)
 
 def build_input(df):
     """Convert dataframe to numpy array input with timesteps as float array
