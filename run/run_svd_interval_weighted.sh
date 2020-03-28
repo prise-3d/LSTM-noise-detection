@@ -9,11 +9,6 @@ for method in {"svd_entropy","svd","svd_entropy_norm","svd_norm"}; do
                     result=$((end - start))
                     if [ $result -gt 0 ]; then
                         
-                        if [ $norm -eq 1 ]; then
-                            method_used="${method}_norm"
-                        else
-                            method_used="${method}"
-                        fi
                         
                         output_name=${method_used}_${start}_${end}_imnorm${imnorm}_seq${sequence}_no_balancing
                         output_name_zones=${output_name}_zones${zones}
@@ -26,7 +21,7 @@ for method in {"svd_entropy","svd","svd_entropy_norm","svd_norm"}; do
 
                             python processing/prepare_dataset_zones.py --data data/generated/${output_name} --output ${output_name_zones} --sequence ${sequence} --n_zones 12
 
-                            python train_lstm.py --train data/datasets/${output_name_zones}/${output_name_zones}.train --test data/datasets/${output_name_zones}/${output_name_zones}.test --output ${output_name_zones}
+                            python train_lstm_weighted.py --train data/datasets/${output_name_zones}/${output_name_zones}.train --test data/datasets/${output_name_zones}/${output_name_zones}.test --output ${output_name_zones}
                         else
                             echo "${output_name_zones} already generated..."
                         fi

@@ -46,9 +46,9 @@ def create_model(input_shape):
     print ('Creating model...')
     model = Sequential()
     #model.add(Embedding(input_dim = 1000, output_dim = 50, input_length=input_length))
-    model.add(GRU(input_shape=input_shape, output_dim=128, activation='sigmoid', inner_activation='hard_sigmoid', return_sequences=True))
+    model.add(GRU(input_shape=input_shape, units=128, activation='sigmoid', recurrent_activation='hard_sigmoid', return_sequences=True))
     model.add(Dropout(0.5))
-    model.add(GRU(output_dim=128, activation='sigmoid', inner_activation='hard_sigmoid'))
+    model.add(GRU(units=128, activation='sigmoid', recurrent_activation='hard_sigmoid'))
     model.add(Dropout(0.5))
     model.add(Dense(1, activation='sigmoid'))
 
@@ -77,21 +77,32 @@ def main():
     dataset_train = pd.read_csv(p_train, header=None, sep=';')
     dataset_test = pd.read_csv(p_test, header=None, sep=';')
 
-    # balancing dataset (50% for each class)
-    # noisy_df_train = dataset_train[dataset_train.iloc[:, 0] == 1]
-    # not_noisy_df_train = dataset_train[dataset_train.iloc[:, 0] == 0]
-    # nb_noisy_train = len(noisy_df_train.index)
+    # getting weighted class over the whole dataset
+    noisy_df_train = dataset_train[dataset_train.iloc[:, 0] == 1]
+    not_noisy_df_train = dataset_train[dataset_train.iloc[:, 0] == 0]
+    nb_noisy_train = len(noisy_df_train.index)
+    nb_not_noisy_train = len(not_noisy_df_train.index)
 
-    # noisy_df_test = dataset_test[dataset_test.iloc[:, 0] == 1]
-    # not_noisy_df_test = dataset_test[dataset_test.iloc[:, 0] == 0]
-    # nb_noisy_test = len(noisy_df_test.index)
+    noisy_df_test = dataset_test[dataset_test.iloc[:, 0] == 1]
+    not_noisy_df_test = dataset_test[dataset_test.iloc[:, 0] == 0]
+    nb_noisy_test = len(noisy_df_test.index)
+    nb_not_noisy_test = len(not_noisy_df_test.index)
 
-    # final_df_train = pd.concat([not_noisy_df_train[0:nb_noisy_train], noisy_df_train])
-    # final_df_test = pd.concat([not_noisy_df_test[0:nb_noisy_test], noisy_df_test])
+    noisy_samples = nb_noisy_test + nb_noisy_train
+    not_noisy_samples = nb_not_noisy_test + nb_not_noisy_train
 
-    # # shuffle data
-    # final_df_train = sklearn.utils.shuffle(final_df_train)
-    # final_df_test = sklearn.utils.shuffle(final_df_test)
+    total_samples = noisy_samples + not_noisy_samples
+
+    print('noisy', noisy_samples)
+    print('not_noisy', not_noisy_samples)
+    print('total', total_samples)
+
+    class_weight = {
+        0: noisy_samples / float(total_samples),
+        1: not_noisy_samples / float(total_samples)
+    }
+
+    # shuffle data
     final_df_train = sklearn.utils.shuffle(dataset_train)
     final_df_test = sklearn.utils.shuffle(dataset_test)
 
@@ -109,8 +120,8 @@ def main():
     model = create_model(input_shape)
     model.summary()
 
-    # print ('Fitting model...')
-    hist = model.fit(X_train, y_train, batch_size=32, epochs=20, validation_split = 0.2, verbose = 1)
+    print("Fitting model with custom class_weight", class_weight)
+    hist = model.fit(X_train, y_train, batch_size=32, epochs=100, validation_split = 0.2, verbose = 1, class_weight=class_weight)
 
 
     train_score, train_acc = model.evaluate(X_train, y_train, batch_size=1)
@@ -127,7 +138,6 @@ def main():
 
     acc_train = accuracy_score(y_train, y_train_predict)
     acc_test = accuracy_score(y_test, y_test_predict)
-    
     
     print('Train ACC:', acc_train)
     print('Train AUC', auc_train)
