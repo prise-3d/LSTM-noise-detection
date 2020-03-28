@@ -9,7 +9,7 @@ for method in {"svd_entropy","svd","svd_entropy_norm","svd_norm"}; do
                     result=$((end - start))
                     if [ $result -gt 0 ]; then
                         
-                        output_name=${method_used}_${start}_${end}_imnorm${imnorm}_seq${sequence}_no_balancing
+                        output_name=${method}_${start}_${end}_imnorm${imnorm}_seq${sequence}_no_balancing
                         output_name_zones=${output_name}_zones${zones}
                         
                         if [ ! -f data/saved_models/${output_name_zones}.joblib ]; then
