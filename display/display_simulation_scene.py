@@ -44,6 +44,12 @@ def write_progress(progress):
 
 def display_simulation_thresholds(scene, zones_predictions, humans, image_indices, zones_learned=None):
     
+    # get reference image
+    images = sorted([ img for img in os.listdir(os.path.join(dataset_folder, scene)) if cfg.scene_image_extension in img ])
+
+    reference_img_path = os.path.join(dataset_folder, scene, images[-1])
+    blocks = segmentation.divide_in_blocks(Image.open(reference_img_path), (200, 200), pil=False)
+
     fig=plt.figure(figsize=(35, 22))
     fig.suptitle("Detection simulation for " + scene + " scene", fontsize=20)
 
@@ -52,6 +58,8 @@ def display_simulation_thresholds(scene, zones_predictions, humans, image_indice
     # dataset information
     start_index = int(image_indices[1]) - int(image_indices[0])
     step_value = int(image_indices[1]) - int(image_indices[0])
+
+    y_min_lim, y_max_lim = (-1, 2)
 
     for index, predictions in enumerate(zones_predictions):
 
@@ -65,6 +73,7 @@ def display_simulation_thresholds(scene, zones_predictions, humans, image_indice
 
         fig.add_subplot(4, 4, (index + 1))
         plt.plot(predictions)
+        #plt.imshow(blocks[index], extent=[0, len(predictions), y_min_lim, y_max_lim])
 
         if zones_learned is not None:
             if index in zones_learned:
@@ -85,7 +94,7 @@ def display_simulation_thresholds(scene, zones_predictions, humans, image_indice
         x = [v for v in np.arange(0, len(predictions)) if v % label_freq == 0]
 
         plt.xticks(x, x_labels, rotation=45)
-        plt.ylim(-1, 2)
+        plt.ylim(y_min_lim, y_max_lim)
 
     #plt.savefig(os.path.join(folder_path, scene_names[id] + '_simulation_curve.png'))
     plt.show()
@@ -213,7 +222,9 @@ def main():
                 data = line.split(';')
 
                 if data[0] == scene:
-                    zones_learned = data[1:]
+                    zones_selected = data[1:]
+                    del zones_selected[-1]
+                    zones_learned = [ int(zone) for zone in zones_selected ]
 
     # 6. display results
     display_simulation_thresholds(scene, zones_predictions, human_thresholds, image_indices, zones_learned)

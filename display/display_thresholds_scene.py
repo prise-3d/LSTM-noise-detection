@@ -184,7 +184,7 @@ def main():
                         n_estimated_thresholds[index] += 1
 
                         # if same number of detection is attempted
-                        if n_estimated_thresholds == p_n_stop:
+                        if n_estimated_thresholds[index] >= p_n_stop:
                             estimated_thresholds[index] = image_indices[img_i]
                     else:
                         n_estimated_thresholds[index] = 0
