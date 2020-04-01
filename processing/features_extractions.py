@@ -1,5 +1,6 @@
 # main imports
 import numpy as np
+from math import log10
 
 # librairies imports
 from ipfml.utils import get_entropy, normalize_arr
@@ -11,6 +12,13 @@ def _extract_svd(image, params):
     sigma = transform.get_LAB_L_SVD_s(image)
     return list(sigma[begin:end])
 
+def _extract_svd_log10(image, params):
+    begin, end = tuple(map(int, params.split(',')))
+
+    sigma = transform.get_LAB_L_SVD_s(image)
+    sigma_interval = list(sigma[begin:end])
+    return [ log10(y) for y in sigma_interval ]
+
 def _extract_stats_luminance(image, params):
     L = transform.get_LAB_L(image)
     sigma = compression.get_SVD_s(L)
@@ -21,6 +29,13 @@ def _extract_svd_norm(image, params):
 
     sigma = transform.get_LAB_L_SVD_s(image)
     return list(normalize_arr(sigma[begin:end]))
+
+def _extract_svd_norm_log10(image, params):
+    begin, end = tuple(map(int, params.split(',')))
+
+    sigma = transform.get_LAB_L_SVD_s(image)
+    sigma_interval = list(normalize_arr(sigma[begin:end]))
+    return [ log10(y) for y in sigma_interval ]
 
 def _extract_mu_sigma(image, params):
     image = np.array(image)
@@ -56,6 +71,12 @@ def extract_data(image, method, params = None):
 
     if method == 'svd_norm':
         return _extract_svd_norm(image, params)
+
+    if method == 'svd_log10':
+        return _extract_svd_log10(image, params)
+
+    if method == 'svd_norm_log10':
+        return _extract_svd_norm_log10(image, params)
 
     if method == 'stats_luminance':
         return _extract_stats_luminance(image, params)

@@ -1,7 +1,7 @@
 #method="svd_entropy"
 zones=12
 
-for method in {"svd_entropy","svd","svd_entropy_norm","svd_norm"}; do
+for method in {"svd","svd_norm","svd_log10","svd_norm_log10"}; do
     for imnorm in {0,1}; do
         for start in {0,50,100,150}; do
             for end in {50,100,150,200}; do
@@ -20,7 +20,7 @@ for method in {"svd_entropy","svd","svd_entropy_norm","svd_norm"}; do
 
                             python processing/prepare_dataset_zones.py --data data/generated/${output_name} --output ${output_name_zones} --sequence ${sequence} --n_zones 12
 
-                            python train_lstm_weighted.py --train data/datasets/${output_name_zones}/${output_name_zones}.train --test data/datasets/${output_name_zones}/${output_name_zones}.test --output ${output_name_zones}
+                            python train_lstm_weighted_v2.py --train data/datasets/${output_name_zones}/${output_name_zones}.train --test data/datasets/${output_name_zones}/${output_name_zones}.test --output ${output_name_zones}
                         else
                             echo "${output_name_zones} already generated..."
                         fi
