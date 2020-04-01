@@ -19,7 +19,7 @@ output_models                   = os.path.join(output_data_folder, 'saved_models
 
 # file or extensions
 
-features_choices_labels         = ['svd_entropy', 'svd_entropy_norm', 'mu_sigma', 'svd', 'svd_norm', 'stats_luminance']
+features_choices_labels         = ['svd_entropy', 'svd_entropy_norm', 'mu_sigma', 'svd', 'svd_norm', 'svd_log10', 'svd_norm_log10', 'stats_luminance']
 results_filename                = 'results.csv'
 
 # parameters

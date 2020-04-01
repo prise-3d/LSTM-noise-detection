@@ -42,38 +42,61 @@ def write_progress(progress):
     print(output_str)
     sys.stdout.write("\033[F")
 
-def display_estimated_thresholds(scene, estimated, humans, max_index, zones_learned=None):
+def display_simulation_thresholds(scene, zones_predictions, humans, image_indices, zones_learned=None):
     
-    colors = ['C0', 'C1', 'C2', 'C3']
-    
-    plt.figure(figsize=(25, 20))
-    plt.rc('xtick', labelsize=16)    # fontsize of the tick labels
-    plt.rc('ytick', labelsize=16)    # fontsize of the tick labels
-    
-    plt.plot(estimated, 
-             color=colors[0], 
-             label='Estimated thresholds')
+    # get reference image
+    images = sorted([ img for img in os.listdir(os.path.join(dataset_folder, scene)) if cfg.scene_image_extension in img ])
 
-    
-    plt.plot(humans, 
-             color=colors[1], 
-             label='Human thresholds')
-        
+    reference_img_path = os.path.join(dataset_folder, scene, images[-1])
+    blocks = segmentation.divide_in_blocks(Image.open(reference_img_path), (200, 200), pil=False)
 
-    if zones_learned is not None:
-        del zones_learned[-1]
-        zones_learned = [ int(i) for i in zones_learned ]
+    fig=plt.figure(figsize=(35, 22))
+    fig.suptitle("Detection simulation for " + scene + " scene", fontsize=20)
 
-        for x, estimation in enumerate(estimated):
+    label_freq = 10
 
-            if x in zones_learned:
-                plt.scatter(x, estimation, s=30, marker='H', color='red')
-    
+    # dataset information
+    start_index = int(image_indices[1]) - int(image_indices[0])
+    step_value = int(image_indices[1]) - int(image_indices[0])
 
-    plt.ylim(0, max_index) 
-    plt.xticks(zones_indices)
-    plt.title('Comparisons of estimated vs human thresholds for ' + scene, fontsize=22)
-    plt.legend(fontsize=20)
+    y_min_lim, y_max_lim = (-1, 2)
+
+    for index, predictions in enumerate(zones_predictions):
+
+        # get index of current value
+        counter_index = 0
+        current_value = start_index
+
+        while(current_value < humans[index]):
+            counter_index += 1
+            current_value += step_value
+
+        fig.add_subplot(4, 4, (index + 1))
+        plt.plot(predictions)
+        #plt.imshow(blocks[index], extent=[0, len(predictions), y_min_lim, y_max_lim])
+
+        if zones_learned is not None:
+            if index in zones_learned:
+                ax = plt.gca()
+                ax.set_facecolor((0.9, 0.95, 0.95))
+
+        # draw vertical line from (70,100) to (70, 250)
+        plt.plot([counter_index, counter_index], [-2, 2], 'k-', lw=2, color='red')
+
+        if index % 4 == 0:
+            plt.ylabel('Not noisy / Noisy', fontsize=20)
+
+        if index >= 12:
+            plt.xlabel('Samples per pixel', fontsize=20)
+
+        x_labels = [id * step_value + start_index for id, val in enumerate(predictions) if id % label_freq == 0]
+
+        x = [v for v in np.arange(0, len(predictions)) if v % label_freq == 0]
+
+        plt.xticks(x, x_labels, rotation=45)
+        plt.ylim(y_min_lim, y_max_lim)
+
+    #plt.savefig(os.path.join(folder_path, scene_names[id] + '_simulation_curve.png'))
     plt.show()
 
 def main():
@@ -84,7 +107,6 @@ def main():
     parser.add_argument('--method', type=str, help='method name to used', choices=cfg.features_choices_labels, default=cfg.features_choices_labels[0])
     parser.add_argument('--params', type=str, help='param of the method used', default="")
     parser.add_argument('--sequence', type=int, help='sequence length expected')
-    parser.add_argument('--n_stop', type=int, help='n elements for stopping criteria', default=1)
     parser.add_argument('--imnorm', type=int, help="specify if image is normalized before computing something", default=0, choices=[0, 1])
     parser.add_argument('--learned_zones', type=str, help="Filename which specifies if zones are learned or not and which zones", default="")
     parser.add_argument('--scene', type=str, help='Scene index to use', choices=cfg.scenes_indices)
@@ -95,7 +117,6 @@ def main():
     p_method   = args.method
     p_params   = args.params
     p_sequence = args.sequence
-    p_n_stop   = args.n_stop
     p_imnorm   = args.imnorm
     p_zones    = args.learned_zones
     p_scene    = args.scene
@@ -116,8 +137,7 @@ def main():
                   metrics=['accuracy'])
 
 
-    estimated_thresholds = []
-    n_estimated_thresholds = []
+    zones_predictions = []
     human_thresholds = []
 
     # 3. retrieve human_thresholds
@@ -152,8 +172,7 @@ def main():
     # append empty list
     for zone in zones_list:
         blocks_sequence.append([])
-        estimated_thresholds.append(None)
-        n_estimated_thresholds.append(0)
+        zones_predictions.append([])
 
     for img_i, img_path in enumerate(images_path):
 
@@ -161,46 +180,36 @@ def main():
 
         for index, block in enumerate(blocks):
             
-            if estimated_thresholds[index] is None:
-                # normalize if necessary
-                if p_imnorm:
-                    block = np.array(block) / 255.
+            # normalize if necessary
+            if p_imnorm:
+                block = np.array(block) / 255.
 
-                blocks_sequence[index].append(np.array(extract_data(block, p_method, p_params)))
+            blocks_sequence[index].append(np.array(extract_data(block, p_method, p_params)))
 
-                # check if prediction is possible
-                if len(blocks_sequence[index]) >= p_sequence:
-                    data = np.array(blocks_sequence[index])
-                    
-                    if data.ndim == 1:
-                        data = data.reshape(len(blocks_sequence[index]), 1)
+            # check if prediction is possible
+            if len(blocks_sequence[index]) >= p_sequence:
+                data = np.array(blocks_sequence[index])
+                
+                if data.ndim == 1:
+                    data = data.reshape(len(blocks_sequence[index]), 1)
 
-                    data = np.expand_dims(data, axis=0)
-                    
-                    prob = model.predict(data, batch_size=1)[0][0]
-                    #print(index, ':', image_indices[img_i], '=>', prob)
+                data = np.expand_dims(data, axis=0)
+                
+                prob = model.predict(data, batch_size=1)[0][0]
+                #print(index, ':', image_indices[img_i], '=>', prob)
 
-                    if prob < 0.5:
-                        n_estimated_thresholds[index] += 1
+                if prob < 0.5:
+                    zones_predictions[index].append(0)
+                else:
+                    zones_predictions[index].append(1)
 
-                        # if same number of detection is attempted
-                        if n_estimated_thresholds[index] >= p_n_stop:
-                            estimated_thresholds[index] = image_indices[img_i]
-                    else:
-                        n_estimated_thresholds[index] = 0
-
-                    # delete first element (just like sliding window)
-                    del blocks_sequence[index][0]
+                # delete first element (just like sliding window)
+                del blocks_sequence[index][0]
 
         # write progress bar
         write_progress((image_counter + 1) / number_of_images)
         
         image_counter = image_counter + 1
-    
-    # default label
-    for i, _ in enumerate(zones_list):
-        if estimated_thresholds[i] == None:
-            estimated_thresholds[i] = image_indices[-1]
 
     # 5. check if learned zones
     zones_learned = None
@@ -213,10 +222,12 @@ def main():
                 data = line.split(';')
 
                 if data[0] == scene:
-                    zones_learned = data[1:]
+                    zones_selected = data[1:]
+                    del zones_selected[-1]
+                    zones_learned = [ int(zone) for zone in zones_selected ]
 
     # 6. display results
-    display_estimated_thresholds(scene, estimated_thresholds, human_thresholds, image_indices[-1], zones_learned)
+    display_simulation_thresholds(scene, zones_predictions, human_thresholds, image_indices, zones_learned)
 
 if __name__== "__main__":
     main()
