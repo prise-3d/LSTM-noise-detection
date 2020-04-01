@@ -32,6 +32,18 @@ def save_learned_zones(output_name, scene, zones):
 
         f.write('\n')
 
+
+def get_random_zones(scene, zones, n_zones):
+
+    random.shuffle(zones)
+
+    # specific case for 'Cuisine01' (zone 12 is also noisy even in reference image)
+    if scene == 'Cuisine01':
+        while 12 in zones[0:n_zones]:
+            random.shuffle(zones)
+    
+    return zones[0:n_zones]
+
 def main():
 
     parser = argparse.ArgumentParser(description="Read and compute entropy data file (using diff)")
@@ -89,14 +101,13 @@ def main():
             if current_scene == None:
                 new_scene == True
                 current_scene = scene_name
-                random.shuffle(zones)
-                selected_zones = zones[0:p_n_zones]
+                selected_zones = get_random_zones(scene_name, zones, p_n_zones)
                 save_learned_zones(p_output, scene_name, selected_zones)
 
             if scene_name != current_scene:
                 new_scene = True
                 random.shuffle(zones)
-                selected_zones = zones[0:p_n_zones]
+                selected_zones = get_random_zones(scene_name, zones, p_n_zones)
                 save_learned_zones(p_output, scene_name, selected_zones)
             else:
                 new_scene = False
