@@ -48,6 +48,55 @@ def _extract_svd_entropy(image, params):
     sigma = transform.get_LAB_L_SVD_s(image)
     return get_entropy(sigma[begin:end])
 
+def _extract_svd_entropy_split(image, params):
+    
+    begin, end, split = tuple(map(int, params.split(',')))
+
+    sigma = transform.get_LAB_L_SVD_s(image)
+
+    # split in equals parts
+    sigma_parts = np.array_split(sigma[begin:end], split)
+
+    return list([ get_entropy(part) for part in sigma_parts ])
+
+def _extract_svd_entropy_norm_split(image, params):
+
+    begin, end, split = tuple(map(int, params.split(',')))
+
+    sigma = transform.get_LAB_L_SVD_s(image)
+    sigma_interval = list(normalize_arr(sigma[begin:end]))
+
+    # split in equals parts
+    sigma_parts = np.array_split(sigma_interval, split)
+
+    return list([ get_entropy(part) for part in sigma_parts ])
+
+def _extract_svd_entropy_log10_split(image, params):
+
+    begin, end, split = tuple(map(int, params.split(',')))
+
+    sigma = transform.get_LAB_L_SVD_s(image)
+    sigma_interval = list(sigma[begin:end])
+    sigma_log_based = [ log10(y) for y in sigma_interval ]
+
+    # split in equals parts
+    sigma_parts = np.array_split(sigma_log_based, split)
+
+    return list([ get_entropy(part) for part in sigma_parts ])
+
+def _extract_svd_entropy_norm_log10_split(image, params):
+
+    begin, end, split = tuple(map(int, params.split(',')))
+
+    sigma = transform.get_LAB_L_SVD_s(image)
+    sigma_interval = list(normalize_arr(sigma[begin:end]))
+    sigma_log_based = [ log10(y) for y in sigma_interval ]
+
+    # split in equals parts
+    sigma_parts = np.array_split(sigma_log_based, split)
+
+    return list([ get_entropy(part) for part in sigma_parts ])
+
 def _extract_svd_entropy_norm(image, params):
     
     begin, end = tuple(map(int, params.split(',')))
@@ -80,6 +129,18 @@ def extract_data(image, method, params = None):
 
     if method == 'stats_luminance':
         return _extract_stats_luminance(image, params)
+
+    if method == 'svd_entropy_split':
+        return _extract_svd_entropy_split(image, params)
+    
+    if method == 'svd_entropy_log10_split':
+        return _extract_svd_entropy_log10_split(image, params)
+
+    if method == 'svd_entropy_norm_split':
+        return _extract_svd_entropy_norm_split(image, params)
+    
+    if method == 'svd_entropy_norm_log10_split':
+        return _extract_svd_entropy_norm_log10_split(image, params)
     
     # no method found
     return None
