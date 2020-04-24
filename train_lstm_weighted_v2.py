@@ -4,8 +4,10 @@ import numpy as np
 import pandas as pd
 import os
 
+import matplotlib.pyplot as plt
+
 # dl imports
-from keras.layers import Dense, Dropout, LSTM, Embedding, GRU
+from keras.layers import Dense, Dropout, LSTM, Embedding, GRU, BatchNormalization
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import Sequential
 from sklearn.metrics import roc_auc_score, accuracy_score
@@ -39,17 +41,21 @@ def build_input(df):
         
         final_arr.append(v_data)
 
-    return np.array(final_arr)
+    return np.array(final_arr, 'float32')
 
 
 def create_model(input_shape):
     print ('Creating model...')
     model = Sequential()
     #model.add(Embedding(input_dim = 1000, output_dim = 50, input_length=input_length))
-    model.add(GRU(input_shape=input_shape, units=256, activation='sigmoid', recurrent_activation='hard_sigmoid', return_sequences=True))
-    model.add(Dropout(0.5))
-    model.add(GRU(units=128, activation='sigmoid', recurrent_activation='hard_sigmoid'))
-    model.add(Dropout(0.5))
+    model.add(LSTM(input_shape=input_shape, units=256, activation='relu', recurrent_activation='hard_sigmoid', return_sequences=True))
+    model.add(Dropout(0.2))
+    model.add(LSTM(units=128, activation='relu', recurrent_activation='hard_sigmoid', return_sequences=True))
+    model.add(Dropout(0.2))
+    model.add(LSTM(units=128, activation='relu', recurrent_activation='hard_sigmoid', return_sequences=True))
+    model.add(Dropout(0.2))
+    model.add(LSTM(units=128, activation='relu', recurrent_activation='hard_sigmoid'))
+    model.add(Dropout(0.2))
     model.add(Dense(1, activation='sigmoid'))
 
     print ('Compiling...')
@@ -124,8 +130,26 @@ def main():
     model.summary()
 
     print("Fitting model with custom class_weight", class_weight)
-    hist = model.fit(X_train, y_train, batch_size=32, epochs=150, validation_split = 0.2, verbose = 1, shuffle=True, class_weight=class_weight)
+    history = model.fit(X_train, y_train, batch_size=16, epochs=20, validation_split = 0.33, verbose = 1, shuffle=True, class_weight=class_weight)
 
+    # list all data in history
+    print(history.history.keys())
+    # summarize history for accuracy
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.show()
+    # summarize history for loss
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.show()
 
     train_score, train_acc = model.evaluate(X_train, y_train, batch_size=1)
 

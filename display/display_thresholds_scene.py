@@ -25,6 +25,8 @@ dataset_folder = cfg.dataset_path
 scenes_list    = cfg.scenes_names
 zones_indices  = cfg.zones_indices
 
+output_figures = cfg.output_figures
+
 def write_progress(progress):
     barWidth = 180
 
@@ -42,7 +44,7 @@ def write_progress(progress):
     print(output_str)
     sys.stdout.write("\033[F")
 
-def display_estimated_thresholds(scene, estimated, humans, max_index, zones_learned=None):
+def display_estimated_thresholds(scene, estimated, humans, max_index, zones_learned=None, p_save=False):
     
     colors = ['C0', 'C1', 'C2', 'C3']
     
@@ -74,7 +76,14 @@ def display_estimated_thresholds(scene, estimated, humans, max_index, zones_lear
     plt.xticks(zones_indices)
     plt.title('Comparisons of estimated vs human thresholds for ' + scene, fontsize=22)
     plt.legend(fontsize=20)
-    plt.show()
+
+    if p_save:
+
+        if not os.path.exists(output_figures):
+            os.makedirs(output_figures)
+        plt.savefig(os.path.join(output_figures, 'thresholds_' + scene + '.png'))
+    else:
+        plt.show()
 
 def main():
 
@@ -88,6 +97,7 @@ def main():
     parser.add_argument('--imnorm', type=int, help="specify if image is normalized before computing something", default=0, choices=[0, 1])
     parser.add_argument('--learned_zones', type=str, help="Filename which specifies if zones are learned or not and which zones", default="")
     parser.add_argument('--scene', type=str, help='Scene index to use', choices=cfg.scenes_indices)
+    parser.add_argument('--save', type=int, help='save or not figure', choices=[0, 1])
 
     args = parser.parse_args()
 
@@ -99,6 +109,7 @@ def main():
     p_imnorm   = args.imnorm
     p_zones    = args.learned_zones
     p_scene    = args.scene
+    p_save     = bool(args.save)
 
     # 1. get scene name
     scenes_list = cfg.scenes_names
@@ -216,7 +227,7 @@ def main():
                     zones_learned = data[1:]
 
     # 6. display results
-    display_estimated_thresholds(scene, estimated_thresholds, human_thresholds, image_indices[-1], zones_learned)
+    display_estimated_thresholds(scene, estimated_thresholds, human_thresholds, image_indices[-1], zones_learned, p_save)
 
 if __name__== "__main__":
     main()

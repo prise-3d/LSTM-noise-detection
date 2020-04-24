@@ -1,6 +1,9 @@
 # main imports
 import numpy as np
 from math import log10
+import gzip
+import sys
+
 
 # librairies imports
 from ipfml.utils import get_entropy, normalize_arr
@@ -104,6 +107,13 @@ def _extract_svd_entropy_norm(image, params):
     sigma = transform.get_LAB_L_SVD_s(image)
     return get_entropy(normalize_arr(sigma[begin:end]))
 
+def kolmogorov_complexity(image, params):
+
+    bytes_data = np.array(image).tobytes()
+    compress_data = gzip.compress(bytes_data)
+
+    return sys.getsizeof(compress_data)
+
 def extract_data(image, method, params = None):
 
     if method == 'svd_entropy':
@@ -141,6 +151,9 @@ def extract_data(image, method, params = None):
     
     if method == 'svd_entropy_norm_log10_split':
         return _extract_svd_entropy_norm_log10_split(image, params)
+
+    if method == 'kolmogorov_complexity':
+        return kolmogorov_complexity(image, params)
     
     # no method found
     return None

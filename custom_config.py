@@ -14,6 +14,7 @@ output_datasets                 = os.path.join(output_data_folder, 'datasets')
 output_results_folder           = os.path.join(output_data_folder, 'results')
 output_zones_learned            = os.path.join(output_data_folder, 'learned_zones')
 output_models                   = os.path.join(output_data_folder, 'saved_models')
+output_figures                  = os.path.join(output_data_folder, 'figures')
 ## noisy_folder                    = 'noisy'
 ## not_noisy_folder                = 'notNoisy'
 
@@ -31,8 +32,10 @@ features_choices_labels         = [
                                     'svd_entropy_split',
                                     'svd_entropy_norm_split',
                                     'svd_entropy_log10_split',
-                                    'svd_entropy_norm_log10_split'
+                                    'svd_entropy_norm_log10_split',
+                                    'kolmogorov_complexity'
                                 ]
+
 results_filename                = 'results.csv'
 
 # parameters
