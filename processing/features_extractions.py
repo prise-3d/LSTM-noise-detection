@@ -6,7 +6,7 @@ import sys
 
 
 # librairies imports
-from ipfml.utils import get_entropy, normalize_arr
+from ipfml.utils import get_entropy, normalize_arr, normalize_arr_with_range
 from ipfml.processing import transform, compression, segmentation
 
 def _extract_svd(image, params):
@@ -121,10 +121,29 @@ def _extract_svd_entropy_blocks(image, params):
 
     for block in blocks:
         reduced_sigma = compression.get_SVD_s(block)
-        reduced_entropy = get_entropy(sigma[begin:end])
+        reduced_entropy = get_entropy(reduced_sigma)
         entropy_list.append(reduced_entropy)
 
     return entropy_list
+
+def _extract_svd_entropy_blocks_norm(image, params):
+    
+    w_block, h_block = tuple(map(int, params.split(',')))
+
+    # get L channel
+    L_channel = transform.get_LAB_L(image)
+
+    # split in n block
+    blocks = segmentation.divide_in_blocks(L_channel, (w_block, h_block))
+
+    entropy_list = []
+
+    for block in blocks:
+        reduced_sigma = compression.get_SVD_s(block)
+        reduced_entropy = get_entropy(reduced_sigma)
+        entropy_list.append(reduced_entropy)
+
+    return normalize_arr_with_range(entropy_list)
 
 def _extract_svd_entropy_blocks_permutation(image, params):
     
@@ -140,12 +159,12 @@ def _extract_svd_entropy_blocks_permutation(image, params):
 
     for block in blocks:
         reduced_sigma = compression.get_SVD_s(block)
-        reduced_entropy = get_entropy(sigma[begin:end])
+        reduced_entropy = get_entropy(reduced_sigma)
         entropy_list.append(reduced_entropy)
 
     return np.argsort(entropy_list)
 
-def kolmogorov_complexity(image, params):
+def _extract_kolmogorov_complexity(image, params):
 
     bytes_data = np.array(image).tobytes()
     compress_data = gzip.compress(bytes_data)
@@ -191,7 +210,16 @@ def extract_data(image, method, params = None):
         return _extract_svd_entropy_norm_log10_split(image, params)
 
     if method == 'kolmogorov_complexity':
-        return kolmogorov_complexity(image, params)
+        return _extract_kolmogorov_complexity(image, params)
+
+    if method == 'svd_entropy_blocks':
+        return _extract_svd_entropy_blocks(image, params)
+    
+    if method == 'svd_entropy_blocks_norm':
+        return _extract_svd_entropy_blocks_norm(image, params)
+
+    if method == 'svd_entropy_blocks_permutation':
+        return _extract_svd_entropy_blocks_permutation(image, params)
     
     # no method found
     return None

@@ -49,13 +49,9 @@ def create_model(input_shape):
     model = Sequential()
     #model.add(Embedding(input_dim = 1000, output_dim = 50, input_length=input_length))
     model.add(LSTM(input_shape=input_shape, units=256, activation='relu', recurrent_activation='hard_sigmoid', return_sequences=True))
-    model.add(Dropout(0.2))
-    model.add(LSTM(units=128, activation='relu', recurrent_activation='hard_sigmoid', return_sequences=True))
-    model.add(Dropout(0.2))
-    model.add(LSTM(units=128, activation='relu', recurrent_activation='hard_sigmoid', return_sequences=True))
-    model.add(Dropout(0.2))
+    model.add(Dropout(0.4))
     model.add(LSTM(units=128, activation='relu', recurrent_activation='hard_sigmoid'))
-    model.add(Dropout(0.2))
+    model.add(Dropout(0.4))
     model.add(Dense(1, activation='sigmoid'))
 
     print ('Compiling...')
@@ -130,7 +126,7 @@ def main():
     model.summary()
 
     print("Fitting model with custom class_weight", class_weight)
-    history = model.fit(X_train, y_train, batch_size=16, epochs=20, validation_split = 0.33, verbose = 1, shuffle=True, class_weight=class_weight)
+    history = model.fit(X_train, y_train, batch_size=16, epochs=50, validation_split = 0.30, verbose=1, shuffle=True, class_weight=class_weight)
 
     # list all data in history
     print(history.history.keys())

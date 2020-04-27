@@ -33,7 +33,10 @@ features_choices_labels         = [
                                     'svd_entropy_norm_split',
                                     'svd_entropy_log10_split',
                                     'svd_entropy_norm_log10_split',
-                                    'kolmogorov_complexity'
+                                    'kolmogorov_complexity',
+                                    'svd_entropy_blocks',
+                                    'svd_entropy_blocks_norm',
+                                    'svd_entropy_blocks_permutation'
                                 ]
 
 results_filename                = 'results.csv'
