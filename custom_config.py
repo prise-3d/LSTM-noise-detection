@@ -37,6 +37,9 @@ features_choices_labels         = [
                                     'svd_entropy_blocks',
                                     'svd_entropy_blocks_norm',
                                     'svd_entropy_blocks_permutation'
+                                    'entropy_blocks',
+                                    'entropy_blocks_norm',
+                                    'entropy_blocks_permutation'
                                 ]
 
 results_filename                = 'results.csv'

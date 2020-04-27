@@ -164,6 +164,60 @@ def _extract_svd_entropy_blocks_permutation(image, params):
 
     return np.argsort(entropy_list)
 
+def _extract_entropy_blocks(image, params):
+    
+    w_block, h_block = tuple(map(int, params.split(',')))
+
+    # get L channel
+    L_channel = transform.get_LAB_L(image)
+
+    # split in n block
+    blocks = segmentation.divide_in_blocks(L_channel, (w_block, h_block))
+
+    entropy_list = []
+
+    for block in blocks:
+        reduced_entropy = get_entropy(np.squeeze(block))
+        entropy_list.append(reduced_entropy)
+
+    return entropy_list
+
+def _extract_entropy_blocks_norm(image, params):
+    
+    w_block, h_block = tuple(map(int, params.split(',')))
+
+    # get L channel
+    L_channel = transform.get_LAB_L(image)
+
+    # split in n block
+    blocks = segmentation.divide_in_blocks(L_channel, (w_block, h_block))
+
+    entropy_list = []
+
+    for block in blocks:
+        reduced_entropy = get_entropy(np.squeeze(block))
+        entropy_list.append(reduced_entropy)
+
+    return normalize_arr_with_range(entropy_list)
+
+def _extract_entropy_blocks_permutation(image, params):
+    
+    w_block, h_block = tuple(map(int, params.split(',')))
+
+    # get L channel
+    L_channel = transform.get_LAB_L(image)
+
+    # split in n block
+    blocks = segmentation.divide_in_blocks(L_channel, (w_block, h_block))
+
+    entropy_list = []
+
+    for block in blocks:
+        reduced_entropy = get_entropy(np.squeeze(block))
+        entropy_list.append(reduced_entropy)
+
+    return np.argsort(entropy_list)
+
 def _extract_kolmogorov_complexity(image, params):
 
     bytes_data = np.array(image).tobytes()
@@ -220,6 +274,15 @@ def extract_data(image, method, params = None):
 
     if method == 'svd_entropy_blocks_permutation':
         return _extract_svd_entropy_blocks_permutation(image, params)
+
+    if method == 'entropy_blocks':
+        return _extract_entropy_blocks(image, params)
+    
+    if method == 'entropy_blocks_norm':
+        return _extract_entropy_blocks_norm(image, params)
+
+    if method == 'entropy_blocks_permutation':
+        return _extract_entropy_blocks_permutation(image, params)
     
     # no method found
     return None

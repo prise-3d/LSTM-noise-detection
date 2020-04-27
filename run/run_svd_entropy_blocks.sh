@@ -1,10 +1,11 @@
 # by default
 zones=12
+sequence=5
 
-for method in {"svd_entropy_blocks","svd_entropy_blocks_norm","svd_entropy_blocks_permutation"}; do
+for method in {"svd_entropy_blocks","svd_entropy_blocks_norm","svd_entropy_blocks_permutation","entropy_blocks","entropy_blocks_norm","entropy_blocks_permutation"}; do
     for imnorm in {0,1}; do
         for size in {20,40}; do
-            for sequence in {3,4,5,6}; do
+            #for sequence in {4,5,6}; do
                     
                 output_name=${method}_S${size}_seq${sequence}_imnorm${imnorm}
                 output_name_zones=${output_name}_zones${zones}
@@ -21,7 +22,7 @@ for method in {"svd_entropy_blocks","svd_entropy_blocks_norm","svd_entropy_block
                 else
                     echo "${output_name_zones} already generated..."
                 fi
-            done
+            #done
         done
     done
 done
