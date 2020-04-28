@@ -9,11 +9,13 @@ import sys
 from ipfml.utils import get_entropy, normalize_arr, normalize_arr_with_range
 from ipfml.processing import transform, compression, segmentation
 
+
 def _extract_svd(image, params):
     begin, end = tuple(map(int, params.split(',')))
 
     sigma = transform.get_LAB_L_SVD_s(image)
     return list(sigma[begin:end])
+
 
 def _extract_svd_log10(image, params):
     begin, end = tuple(map(int, params.split(',')))
@@ -22,16 +24,19 @@ def _extract_svd_log10(image, params):
     sigma_interval = list(sigma[begin:end])
     return [ log10(y) for y in sigma_interval ]
 
+
 def _extract_stats_luminance(image, params):
     L = transform.get_LAB_L(image)
     sigma = compression.get_SVD_s(L)
     return list([np.mean(L), np.std(L), get_entropy(sigma)])
+
 
 def _extract_svd_norm(image, params):
     begin, end = tuple(map(int, params.split(',')))
 
     sigma = transform.get_LAB_L_SVD_s(image)
     return list(normalize_arr_with_range(sigma[begin:end]))
+
 
 def _extract_svd_norm_log10(image, params):
     begin, end = tuple(map(int, params.split(',')))
@@ -40,9 +45,11 @@ def _extract_svd_norm_log10(image, params):
     sigma_interval = list(normalize_arr_with_range(sigma[begin:end]))
     return [ log10(y) for y in sigma_interval ]
 
+
 def _extract_mu_sigma(image, params):
     image = np.array(image)
     return list([np.mean(image), np.std(image)])
+
 
 def _extract_svd_entropy(image, params):
     
@@ -50,6 +57,7 @@ def _extract_svd_entropy(image, params):
 
     sigma = transform.get_LAB_L_SVD_s(image)
     return get_entropy(sigma[begin:end])
+
 
 def _extract_svd_entropy_split(image, params):
     
@@ -62,6 +70,7 @@ def _extract_svd_entropy_split(image, params):
 
     return list([ get_entropy(part) for part in sigma_parts ])
 
+
 def _extract_svd_entropy_norm_split(image, params):
 
     begin, end, split = tuple(map(int, params.split(',')))
@@ -73,6 +82,7 @@ def _extract_svd_entropy_norm_split(image, params):
     sigma_parts = np.array_split(sigma_interval, split)
 
     return list([ get_entropy(part) for part in sigma_parts ])
+
 
 def _extract_svd_entropy_log10_split(image, params):
 
@@ -87,6 +97,7 @@ def _extract_svd_entropy_log10_split(image, params):
 
     return list([ get_entropy(part) for part in sigma_parts ])
 
+
 def _extract_svd_entropy_norm_log10_split(image, params):
 
     begin, end, split = tuple(map(int, params.split(',')))
@@ -100,12 +111,14 @@ def _extract_svd_entropy_norm_log10_split(image, params):
 
     return list([ get_entropy(part) for part in sigma_parts ])
 
+
 def _extract_svd_entropy_norm(image, params):
     
     begin, end = tuple(map(int, params.split(',')))
 
     sigma = transform.get_LAB_L_SVD_s(image)
     return get_entropy(normalize_arr_with_range(sigma[begin:end]))
+
 
 def _extract_svd_entropy_blocks(image, params):
     
@@ -126,24 +139,11 @@ def _extract_svd_entropy_blocks(image, params):
 
     return entropy_list
 
+
 def _extract_svd_entropy_blocks_norm(image, params):
-    
-    w_block, h_block = tuple(map(int, params.split(',')))
 
-    # get L channel
-    L_channel = transform.get_LAB_L(image)
+    return normalize_arr_with_range(_extract_svd_entropy_blocks(image, params))
 
-    # split in n block
-    blocks = segmentation.divide_in_blocks(L_channel, (w_block, h_block))
-
-    entropy_list = []
-
-    for block in blocks:
-        reduced_sigma = compression.get_SVD_s(block)
-        reduced_entropy = get_entropy(reduced_sigma)
-        entropy_list.append(reduced_entropy)
-
-    return normalize_arr_with_range(entropy_list)
 
 def _extract_svd_entropy_blocks_permutation(image, params):
     
@@ -162,7 +162,13 @@ def _extract_svd_entropy_blocks_permutation(image, params):
         reduced_entropy = get_entropy(reduced_sigma)
         entropy_list.append(reduced_entropy)
 
-    return np.argsort(entropy_list)
+    return list(np.argsort(entropy_list))
+
+
+def _extract_svd_entropy_blocks_permutation_norm(image, params):
+    
+    return normalize_arr_with_range(_extract_svd_entropy_blocks_permutation(image, params))
+
 
 def _extract_entropy_blocks(image, params):
     
@@ -177,28 +183,16 @@ def _extract_entropy_blocks(image, params):
     entropy_list = []
 
     for block in blocks:
-        reduced_entropy = get_entropy(np.squeeze(block))
+        reduced_entropy = get_entropy(np.array(block).flatten())
         entropy_list.append(reduced_entropy)
 
     return entropy_list
 
+
 def _extract_entropy_blocks_norm(image, params):
-    
-    w_block, h_block = tuple(map(int, params.split(',')))
 
-    # get L channel
-    L_channel = transform.get_LAB_L(image)
+    return normalize_arr_with_range(_extract_entropy_blocks(image, params))
 
-    # split in n block
-    blocks = segmentation.divide_in_blocks(L_channel, (w_block, h_block))
-
-    entropy_list = []
-
-    for block in blocks:
-        reduced_entropy = get_entropy(np.squeeze(block))
-        entropy_list.append(reduced_entropy)
-
-    return normalize_arr_with_range(entropy_list)
 
 def _extract_entropy_blocks_permutation(image, params):
     
@@ -213,10 +207,16 @@ def _extract_entropy_blocks_permutation(image, params):
     entropy_list = []
 
     for block in blocks:
-        reduced_entropy = get_entropy(np.squeeze(block))
+        reduced_entropy = get_entropy(np.array(block).flatten())
         entropy_list.append(reduced_entropy)
 
-    return np.argsort(entropy_list)
+    return list(np.argsort(entropy_list))
+
+
+def _extract_entropy_blocks_permutation_norm(image, params):
+    
+    return normalize_arr_with_range(_extract_entropy_blocks_permutation(image, params))
+
 
 def _extract_kolmogorov_complexity(image, params):
 
@@ -224,6 +224,7 @@ def _extract_kolmogorov_complexity(image, params):
     compress_data = gzip.compress(bytes_data)
 
     return sys.getsizeof(compress_data)
+
 
 def extract_data(image, method, params = None):
 
@@ -275,6 +276,9 @@ def extract_data(image, method, params = None):
     if method == 'svd_entropy_blocks_permutation':
         return _extract_svd_entropy_blocks_permutation(image, params)
 
+    if method == 'svd_entropy_blocks_permutation_norm':
+        return _extract_svd_entropy_blocks_permutation_norm(image, params)
+
     if method == 'entropy_blocks':
         return _extract_entropy_blocks(image, params)
     
@@ -283,6 +287,9 @@ def extract_data(image, method, params = None):
 
     if method == 'entropy_blocks_permutation':
         return _extract_entropy_blocks_permutation(image, params)
+    
+    if method == 'entropy_blocks_permutation_norm':
+        return _extract_entropy_blocks_permutation_norm(image, params)
     
     # no method found
     return None

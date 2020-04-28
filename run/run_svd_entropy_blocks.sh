@@ -2,7 +2,7 @@
 zones=12
 sequence=5
 
-for method in {"svd_entropy_blocks","svd_entropy_blocks_norm","svd_entropy_blocks_permutation","entropy_blocks","entropy_blocks_norm","entropy_blocks_permutation"}; do
+for method in {"svd_entropy_blocks","svd_entropy_blocks_norm","svd_entropy_blocks_permutation","svd_entropy_blocks_permutation_norm","entropy_blocks","entropy_blocks_norm","entropy_blocks_permutation","entropy_blocks_permutation_norm"}; do
     for imnorm in {0,1}; do
         for size in {20,40}; do
             #for sequence in {4,5,6}; do
