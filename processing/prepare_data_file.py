@@ -130,9 +130,15 @@ def main():
         # write data into files
         with open(p_output_path, 'a') as f:
             for index, zone in enumerate(zones_list):
+
+                zone_str = "zone" + str(zone)
+
+                if len(zone_str) < 2:
+                    zone_str = '0' + zone_str
+
                 f.write(scene + ';')
                 f.write(str(index) + ';')
-                f.write(zone + ';')
+                f.write(zone_str + ';')
 
                 f.write(str(thresholds[scene][index]) + ';')
 
