@@ -17,7 +17,6 @@ from modules.utils import data as dt
 from features_extractions import extract_data
 
 dataset_folder = cfg.dataset_path
-scenes_list    = cfg.scenes_names
 zones_indices  = cfg.zones_indices
 block_size     = (200, 200)
 
@@ -69,6 +68,8 @@ def main():
 
     # extract all thresholds from threshold file
     thresholds = {}
+    scenes_list = []
+    zones_list = np.arange(16)
 
     with open(p_thresholds) as f:
         thresholds_line = f.readlines()
@@ -79,6 +80,7 @@ def main():
             scene = data[0]
             thresholds_scene = data[1:]
 
+            scenes_list.append(scene)
             thresholds[scene] = thresholds_scene
 
     images_path = {}
@@ -88,8 +90,6 @@ def main():
     for scene in scenes_list:
 
         scene_path = os.path.join(dataset_folder, scene)
-
-        threshold_list = []
 
         images_path[scene] = sorted([os.path.join(scene_path, img) for img in os.listdir(scene_path) if cfg.scene_image_extension in img])
         number_of_images = number_of_images + len(images_path[scene])
