@@ -50,7 +50,7 @@ def create_model(input_shape):
     #model.add(Embedding(input_dim = 1000, output_dim = 50, input_length=input_length))
     model.add(GRU(input_shape=input_shape, units=512, activation='sigmoid', recurrent_activation='hard_sigmoid', return_sequences=True))
     model.add(Dropout(0.4))
-    model.add(GRU(units=256, activation='sigmoid', recurrent_activation='hard_sigmoid', return_sequences=True))
+    model.add(GRU(units=256, activation='sigmoid', recurrent_activation='hard_sigmoid'))
     model.add(Dropout(0.4))
     model.add(Dense(1, activation='sigmoid'))
 
