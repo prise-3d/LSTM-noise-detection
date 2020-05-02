@@ -48,9 +48,11 @@ def create_model(input_shape):
     print ('Creating model...')
     model = Sequential()
     #model.add(Embedding(input_dim = 1000, output_dim = 50, input_length=input_length))
-    model.add(LSTM(input_shape=input_shape, units=256, activation='relu', recurrent_activation='hard_sigmoid', return_sequences=True))
+    model.add(GRU(input_shape=input_shape, units=256, activation='sigmoid', recurrent_activation='hard_sigmoid', return_sequences=True))
     model.add(Dropout(0.4))
-    model.add(LSTM(units=128, activation='relu', recurrent_activation='hard_sigmoid'))
+    model.add(GRU(units=128, activation='sigmoid', recurrent_activation='hard_sigmoid', return_sequences=True))
+    model.add(Dropout(0.4))
+    model.add(GRU(units=64, activation='sigmoid', recurrent_activation='hard_sigmoid'))
     model.add(Dropout(0.4))
     model.add(Dense(1, activation='sigmoid'))
 
