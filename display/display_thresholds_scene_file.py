@@ -135,10 +135,10 @@ def main():
         for line in thresholds_line:
             data = line.split(';')
             del data[-1] # remove unused last element `\n`
-            scene = data[0]
+            current_scene = data[0]
             thresholds_scene = data[1:]
 
-            if p_scene == scene:
+            if p_scene == current_scene:
                 human_thresholds = [ int(threshold) for threshold in  thresholds_scene ]
 
 
@@ -215,11 +215,11 @@ def main():
             for line in lines:
                 data = line.split(';')
 
-                if data[0] == scene:
+                if data[0] == current_scene:
                     zones_learned = data[1:]
 
     # 6. display results
-    display_estimated_thresholds(scene, estimated_thresholds, human_thresholds, image_indices[-1], zones_learned, p_save)
+    display_estimated_thresholds(p_scene, estimated_thresholds, human_thresholds, image_indices[-1], zones_learned, p_save)
 
 if __name__== "__main__":
     main()
