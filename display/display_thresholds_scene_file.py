@@ -139,7 +139,7 @@ def main():
             thresholds_scene = data[1:]
 
             if p_scene == scene:
-                human_thresholds = thresholds_scene
+                human_thresholds = [ int(threshold) for threshold in  thresholds_scene ]
 
 
     # 4. get estimated thresholds using model and specific method

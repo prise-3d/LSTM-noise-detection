@@ -94,10 +94,10 @@ def display_simulation_thresholds(scene, zones_data, humans, image_indices, zone
         plt.plot([counter_index, counter_index], [y_min_lim, y_max_lim], 'k-', lw=2, color='red')
 
         if index % 4 == 0:
-            plt.ylabel('Data values', fontsize=20)
+            plt.ylabel('Data values', fontsize=24)
 
         if index >= 12:
-            plt.xlabel('Samples per pixel', fontsize=20)
+            plt.xlabel('Samples per pixel', fontsize=24)
 
         x_labels = [id * step_value + start_index for id, val in enumerate(data) if id % label_freq == 0]
 
@@ -106,8 +106,8 @@ def display_simulation_thresholds(scene, zones_data, humans, image_indices, zone
         plt.xticks(x, x_labels, rotation=45)
         plt.ylim(y_min_lim, y_max_lim)
 
-    #plt.savefig(os.path.join(folder_path, scene_names[id] + '_simulation_curve.png'))
-    plt.show()
+    plt.savefig(scene + '.png')
+    #plt.show()
 
 def main():
 
