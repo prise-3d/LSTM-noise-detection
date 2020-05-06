@@ -52,6 +52,7 @@ def main():
     parser.add_argument('--output', type=str, help='output dataset prefix file used (saved into .train and .test extension)')
     parser.add_argument('--sequence', type=int, help='sequence length expected')
     parser.add_argument('--n_zones', type=int, help='number of zones used in train', default='')
+    parser.add_argument('--learned_zones', type=str, help='file with specific training zone')
 
     args = parser.parse_args()
 
@@ -59,8 +60,25 @@ def main():
     p_output       = args.output
     p_sequence     = args.sequence
     p_n_zones      = args.n_zones
+    p_learned_zones = args.learned_zones
 
-    print("Number of zones used in train:", p_n_zones)
+    learned_zones = None
+
+    if p_learned_zones is not None:
+        print('Use of specific learned zones')
+
+        with open(p_learned_zones, 'r') as f:
+            lines = f.readlines()
+
+            learned_zones = {}
+
+            for line in lines:
+                data = line.split(';')
+                del data[-1]
+                print(data)
+                learned_zones[data[0]] = [ int(d) for d in data[1:] ]
+    else:
+        print("Number of zones used in train:", p_n_zones)
 
     # create output path if not exists
     p_output_path = os.path.join(cfg.output_datasets, p_output)
@@ -101,13 +119,25 @@ def main():
             if current_scene == None:
                 new_scene == True
                 current_scene = scene_name
-                selected_zones = get_random_zones(scene_name, zones, p_n_zones)
+
+                # check if use of selected zones
+                if learned_zones:
+                    selected_zones = learned_zones[scene_name]
+                else:
+                    selected_zones = get_random_zones(scene_name, zones, p_n_zones)
+
                 save_learned_zones(p_output, scene_name, selected_zones)
 
             if scene_name != current_scene:
                 new_scene = True
                 random.shuffle(zones)
-                selected_zones = get_random_zones(scene_name, zones, p_n_zones)
+                
+                # check if use of selected zones
+                if learned_zones:
+                    selected_zones = learned_zones[scene_name]
+                else:
+                    selected_zones = get_random_zones(scene_name, zones, p_n_zones)
+
                 save_learned_zones(p_output, scene_name, selected_zones)
             else:
                 new_scene = False

@@ -184,10 +184,11 @@ def main():
                         if p_seq_norm:
                             for index, seq in enumerate(data):
                                 
+                                s, f = data.shape
                                 for i in range(f):
                                     #final_arr[index][]
-                                    data[index][:, i] = utils.normalize_arr_with_range(seq[:, i])
-
+                                    data[:, i] = utils.normalize_arr_with_range(data[:, i])
+                                    
                     data = np.expand_dims(data, axis=0)
                     
                     prob = model.predict(data, batch_size=1)[0][0]
