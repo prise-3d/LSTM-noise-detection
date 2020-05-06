@@ -5,6 +5,7 @@ import pandas as pd
 import os
 
 import matplotlib.pyplot as plt
+from ipfml import utils
 
 # dl imports
 from keras.layers import Dense, Dropout, LSTM, Embedding, GRU, BatchNormalization
@@ -19,11 +20,12 @@ from joblib import dump
 import custom_config as cfg
 
 
-def build_input(df):
+def build_input(df, seq_norm):
     """Convert dataframe to numpy array input with timesteps as float array
     
     Arguments:
         df: {pd.Dataframe} -- Dataframe input
+        seq_norm: {bool} -- normalize or not seq input data by features
     
     Returns:
         {np.ndarray} -- input LSTM data as numpy array
@@ -40,9 +42,23 @@ def build_input(df):
             v_data.append(vv)
         
         final_arr.append(v_data)
+    
+    final_arr = np.array(final_arr, 'float32')
 
-    return np.array(final_arr, 'float32')
+    # check if sequence normalization is used
+    if seq_norm:
 
+        if final_arr.ndim > 2:
+            n, s, f = final_arr.shape
+            for index, seq in enumerate(final_arr):
+                
+                for i in range(f):
+                    #final_arr[index][]
+                    final_arr[index][:, i] = utils.normalize_arr_with_range(seq[:, i])
+
+            
+
+    return final_arr
 
 def create_model(input_shape):
     print ('Creating model...')
@@ -69,12 +85,14 @@ def main():
     parser.add_argument('--train', type=str, help='input train dataset')
     parser.add_argument('--test', type=str, help='input test dataset')
     parser.add_argument('--output', type=str, help='output model name')
+    parser.add_argument('--seq_norm', type=int, help='normalization sequence by features', choices=[0, 1])
    
     args = parser.parse_args()
 
     p_train        = args.train
     p_test         = args.test
     p_output       = args.output
+    p_seq_norm     = bool(args.seq_norm)
 
     dataset_train = pd.read_csv(p_train, header=None, sep=';')
     dataset_test = pd.read_csv(p_test, header=None, sep=';')
@@ -110,11 +128,11 @@ def main():
 
     # split dataset into X_train, y_train, X_test, y_test
     X_train = final_df_train.loc[:, 1:].apply(lambda x: x.astype(str).str.split(' '))
-    X_train = build_input(X_train)
+    X_train = build_input(X_train, p_seq_norm)
     y_train = final_df_train.loc[:, 0].astype('int')
 
     X_test = final_df_test.loc[:, 1:].apply(lambda x: x.astype(str).str.split(' '))
-    X_test = build_input(X_test)
+    X_test = build_input(X_test, p_seq_norm)
     y_test = final_df_test.loc[:, 0].astype('int')
 
     X_all = np.concatenate([X_train, X_test])

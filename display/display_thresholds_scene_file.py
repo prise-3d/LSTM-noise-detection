@@ -99,6 +99,7 @@ def main():
     parser.add_argument('--scene', type=str, help='Scene index to use')
     parser.add_argument('--save', type=int, help='save or not figure', choices=[0, 1])
     parser.add_argument('--thresholds', type=str, help='file which cantains all thresholds')
+    parser.add_argument('--seq_norm', type=int, help='normalization sequence by features', choices=[0, 1])
 
     args = parser.parse_args()
 
@@ -112,6 +113,7 @@ def main():
     p_scene      = args.scene
     p_save       = bool(args.save)
     p_thresholds = args.thresholds
+    p_seq_norm     = bool(args.seq_norm)
 
     # 1. get scene name
     scene_path = os.path.join(cfg.dataset_path, p_scene)
@@ -177,11 +179,19 @@ def main():
                     
                     if data.ndim == 1:
                         data = data.reshape(len(blocks_sequence[index]), 1)
+                    else:
+                        # check if sequence normalization is used
+                        if p_seq_norm:
+                            for index, seq in enumerate(data):
+                                
+                                for i in range(f):
+                                    #final_arr[index][]
+                                    data[index][:, i] = utils.normalize_arr_with_range(seq[:, i])
 
                     data = np.expand_dims(data, axis=0)
                     
                     prob = model.predict(data, batch_size=1)[0][0]
-                    #print(index, ':', image_indices[img_i], '=>', prob)
+                    print(index, ':', image_indices[img_i], '=>', prob)
 
                     if prob < 0.5:
                         n_estimated_thresholds[index] += 1
