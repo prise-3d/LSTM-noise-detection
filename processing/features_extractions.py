@@ -3,6 +3,7 @@ import numpy as np
 from math import log10
 import gzip
 import sys
+import cv2
 
 
 # librairies imports
@@ -225,6 +226,51 @@ def _extract_kolmogorov_complexity(image, params):
 
     return sys.getsizeof(compress_data)
 
+def _extracts_complexity_stats(image, params):
+
+    stats_attributes = []
+
+    image = np.array(image)
+
+    # get lightness
+    lab_img = transform.get_LAB_L(image)
+
+    # 1. extract sobol complexity with kernel 3
+    sobelx = cv2.Sobel(lab_img, cv2.CV_64F, 1, 0, ksize=3)
+    sobely = cv2.Sobel(lab_img, cv2.CV_64F, 0, 1,ksize=3)
+
+    sobel_mag = np.array(np.hypot(sobelx, sobely), 'uint8')  # magnitude
+
+    stats_attributes.append(sobel_mag)
+
+    # 2. extract sobol complexity with kernel 5
+    sobelx = cv2.Sobel(lab_img, cv2.CV_64F, 1, 0, ksize=5)
+    sobely = cv2.Sobel(lab_img, cv2.CV_64F, 0, 1,ksize=5)
+
+    sobel_mag = np.array(np.hypot(sobelx, sobely), 'uint8')  # magnitude
+
+    stats_attributes.append(sobel_mag)
+
+    # 3. extract kolmogorov
+    bytes_data = image.tobytes()
+    compress_data = gzip.compress(bytes_data)
+
+    stats_attributes.append(sys.getsizeof(compress_data))
+
+    # 4. extract svd_entropy
+    begin, end = tuple(map(int, params.split(',')))
+
+    sigma = compression.get_SVD_s(lab_img)
+    stats_attributes.append(get_entropy(sigma[begin:end]))
+
+    # 5. extract lightness mean
+    stats_attributes.append(np.std(lab_img))
+
+    # 6. extract lightness std
+    stats_attributes.append(np.mean(lab_img))
+
+    return stats_attributes
+
 
 def extract_data(image, method, params = None):
 
@@ -291,5 +337,10 @@ def extract_data(image, method, params = None):
     if method == 'entropy_blocks_permutation_norm':
         return _extract_entropy_blocks_permutation_norm(image, params)
     
+    # TODO : add stats method
+    # lightness complexity, mean, std, variance, what more ? kolmogorov ?
+    if method == 'complexity_stats':
+        return _extracts_complexity_stats(image, params)
+
     # no method found
     return None
