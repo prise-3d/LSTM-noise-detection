@@ -87,7 +87,7 @@ def main():
     parser.add_argument('--test', type=str, help='input test dataset')
     parser.add_argument('--output', type=str, help='output model name')
     parser.add_argument('--seq_norm', type=int, help='normalization sequence by features', choices=[0, 1])
-    parser.add_argument('--n_cores', type=int, help='specify expected number of core to use', default=8)
+    # parser.add_argument('--n_cores', type=int, help='specify expected number of core to use', default=8)
 
     args = parser.parse_args()
 
@@ -95,19 +95,19 @@ def main():
     p_test         = args.test
     p_output       = args.output
     p_seq_norm     = bool(args.seq_norm)
-    p_cores        = args.n_cores
+    # p_cores        = args.n_cores
 
     # set number of cores
-    mkl_rt = ctypes.CDLL('libmkl_rt.so')
-    mkl_get_max_threads = mkl_rt.mkl_get_max_threads
-    def mkl_set_num_threads(cores):
-        mkl_rt.mkl_set_num_threads(ctypes.byref(ctypes.c_int(cores)))
+    # mkl_rt = ctypes.CDLL('libmkl_rt.so')
+    # mkl_get_max_threads = mkl_rt.mkl_get_max_threads
+    # def mkl_set_num_threads(cores):
+    #     mkl_rt.mkl_set_num_threads(ctypes.byref(ctypes.c_int(cores)))
 
-    if p_cores > int(mkl_get_max_threads()):
-        p_cores = int(mkl_get_max_threads())
+    # if p_cores > int(mkl_get_max_threads()):
+    #     p_cores = int(mkl_get_max_threads())
 
-    print('Number of cores used:', p_cores)    
-    mkl_set_num_threads(p_cores)
+    # print('Number of cores used:', p_cores)    
+    # mkl_set_num_threads(p_cores)
 
     dataset_train = pd.read_csv(p_train, header=None, sep=';')
     dataset_test = pd.read_csv(p_test, header=None, sep=';')
