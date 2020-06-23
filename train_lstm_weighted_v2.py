@@ -65,10 +65,10 @@ def create_model(input_shape):
     print ('Creating model...')
     model = Sequential()
     #model.add(Embedding(input_dim = 1000, output_dim = 50, input_length=input_length))
-    model.add(GRU(input_shape=input_shape, units=512, activation='sigmoid', recurrent_activation='hard_sigmoid', dropout=0.5, return_sequences=True))
-    model.add(GRU(units=256, activation='sigmoid', dropout=0.5, recurrent_activation='hard_sigmoid'))
+    model.add(GRU(input_shape=input_shape, units=512, activation='sigmoid', recurrent_activation='hard_sigmoid', dropout=0.3, return_sequences=True))
+    model.add(GRU(units=256, activation='sigmoid', dropout=0.3, recurrent_activation='hard_sigmoid'))
     model.add(Dense(128, activation='relu'))
-    model.add(Dropout(0.5))
+    model.add(Dropout(0.3))
     model.add(Dense(1, activation='sigmoid'))
 
     print ('Compiling...')
