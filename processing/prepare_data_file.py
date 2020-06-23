@@ -46,7 +46,7 @@ def main():
 
     parser = argparse.ArgumentParser(description="Extract data from image dataset")
 
-    parser.add_argument('--thresholds', type=str, help='file which cantains all thresholds')
+    parser.add_argument('--thresholds', type=str, help='file which contains all thresholds')
     parser.add_argument('--output', type=str, help='save computed data for each zone of each scene into file')
     parser.add_argument('--method', type=str, help='method name to used', choices=cfg.features_choices_labels, default=cfg.features_choices_labels[0])
     parser.add_argument('--params', type=str, help='param of the method used', default="")

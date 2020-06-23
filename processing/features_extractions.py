@@ -241,7 +241,7 @@ def _extracts_complexity_stats(image, params):
 
     sobel_mag = np.array(np.hypot(sobelx, sobely), 'uint8')  # magnitude
 
-    stats_attributes.append(sobel_mag)
+    stats_attributes.append(np.std(sobel_mag))
 
     # 2. extract sobol complexity with kernel 5
     sobelx = cv2.Sobel(lab_img, cv2.CV_64F, 1, 0, ksize=5)
@@ -249,7 +249,7 @@ def _extracts_complexity_stats(image, params):
 
     sobel_mag = np.array(np.hypot(sobelx, sobely), 'uint8')  # magnitude
 
-    stats_attributes.append(sobel_mag)
+    stats_attributes.append(np.std(sobel_mag))
 
     # 3. extract kolmogorov
     bytes_data = image.tobytes()
@@ -269,7 +269,7 @@ def _extracts_complexity_stats(image, params):
     # 6. extract lightness std
     stats_attributes.append(np.mean(lab_img))
 
-    return stats_attributes
+    return list(stats_attributes)
 
 
 def extract_data(image, method, params = None):

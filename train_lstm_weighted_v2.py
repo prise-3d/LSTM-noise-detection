@@ -3,7 +3,9 @@ import argparse
 import numpy as np
 import pandas as pd
 import os
+import ctypes
 
+from keras import backend as K
 import matplotlib.pyplot as plt
 from ipfml import utils
 
@@ -53,7 +55,6 @@ def build_input(df, seq_norm):
             for index, seq in enumerate(final_arr):
                 
                 for i in range(f):
-                    #final_arr[index][]
                     final_arr[index][:, i] = utils.normalize_arr_with_range(seq[:, i])
 
             
@@ -64,10 +65,10 @@ def create_model(input_shape):
     print ('Creating model...')
     model = Sequential()
     #model.add(Embedding(input_dim = 1000, output_dim = 50, input_length=input_length))
-    model.add(GRU(input_shape=input_shape, units=512, activation='sigmoid', recurrent_activation='hard_sigmoid', return_sequences=True))
-    model.add(Dropout(0.4))
-    model.add(GRU(units=256, activation='sigmoid', recurrent_activation='hard_sigmoid'))
-    model.add(Dropout(0.4))
+    model.add(GRU(input_shape=input_shape, units=512, activation='tanh', recurrent_activation='hard_sigmoid', dropout=0.5, recurrent_dropout=0.5, return_sequences=True))
+    model.add(GRU(units=256, activation='tanh', dropout=0.5, recurrent_dropout=0.5, recurrent_activation='hard_sigmoid'))
+    model.add(Dense(128, activation='relu'))
+    model.add(Dropout(0.5))
     model.add(Dense(1, activation='sigmoid'))
 
     print ('Compiling...')
@@ -86,13 +87,27 @@ def main():
     parser.add_argument('--test', type=str, help='input test dataset')
     parser.add_argument('--output', type=str, help='output model name')
     parser.add_argument('--seq_norm', type=int, help='normalization sequence by features', choices=[0, 1])
-   
+    parser.add_argument('--n_cores', type=int, help='specify expected number of core to use', default=8)
+
     args = parser.parse_args()
 
     p_train        = args.train
     p_test         = args.test
     p_output       = args.output
     p_seq_norm     = bool(args.seq_norm)
+    p_cores        = args.n_cores
+
+    # set number of cores
+    mkl_rt = ctypes.CDLL('libmkl_rt.so')
+    mkl_get_max_threads = mkl_rt.mkl_get_max_threads
+    def mkl_set_num_threads(cores):
+        mkl_rt.mkl_set_num_threads(ctypes.byref(ctypes.c_int(cores)))
+
+    if p_cores > int(mkl_get_max_threads()):
+        p_cores = int(mkl_get_max_threads())
+
+    print('Number of cores used:', p_cores)    
+    mkl_set_num_threads(p_cores)
 
     dataset_train = pd.read_csv(p_train, header=None, sep=';')
     dataset_test = pd.read_csv(p_test, header=None, sep=';')

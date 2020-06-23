@@ -96,9 +96,11 @@ def main():
     parser.add_argument('--n_stop', type=int, help='n elements for stopping criteria', default=1)
     parser.add_argument('--imnorm', type=int, help="specify if image is normalized before computing something", default=0, choices=[0, 1])
     parser.add_argument('--learned_zones', type=str, help="Filename which specifies if zones are learned or not and which zones", default="")
-    parser.add_argument('--scene', type=str, help='Scene index to use')
+    parser.add_argument('--scene', type=str, help='Scene folder to use')
     parser.add_argument('--save', type=int, help='save or not figure', choices=[0, 1])
     parser.add_argument('--thresholds', type=str, help='file which cantains all thresholds')
+    parser.add_argument('--save_thresholds', type=str, help='save or not thresholds')
+    parser.add_argument('--label_thresholds', type=str, help='thresholds method label')
     parser.add_argument('--seq_norm', type=int, help='normalization sequence by features', choices=[0, 1])
 
     args = parser.parse_args()
@@ -113,7 +115,9 @@ def main():
     p_scene      = args.scene
     p_save       = bool(args.save)
     p_thresholds = args.thresholds
-    p_seq_norm     = bool(args.seq_norm)
+    p_save_thresholds = args.save_thresholds
+    p_label_thresholds = args.label_thresholds
+    p_seq_norm   = bool(args.seq_norm)
 
     # 1. get scene name
     scene_path = os.path.join(cfg.dataset_path, p_scene)
@@ -182,7 +186,7 @@ def main():
                     else:
                         # check if sequence normalization is used
                         if p_seq_norm:
-                            for index, seq in enumerate(data):
+                            for _, seq in enumerate(data):
                                 
                                 s, f = data.shape
                                 for i in range(f):
@@ -192,7 +196,7 @@ def main():
                     data = np.expand_dims(data, axis=0)
                     
                     prob = model.predict(data, batch_size=1)[0][0]
-                    print(index, ':', image_indices[img_i], '=>', prob)
+                    #print(index, ':', image_indices[img_i], '=>', prob)
 
                     if prob < 0.5:
                         n_estimated_thresholds[index] += 1
@@ -203,6 +207,7 @@ def main():
                     else:
                         n_estimated_thresholds[index] = 0
 
+                    #print('Block @', index, ':', len(blocks_sequence[index]))
                     # delete first element (just like sliding window)
                     del blocks_sequence[index][0]
 
@@ -228,6 +233,13 @@ def main():
 
                 if data[0] == current_scene:
                     zones_learned = data[1:]
+
+    if p_save_thresholds is not None:
+        with open(p_save_thresholds, 'a') as f:
+            f.write(p_label_thresholds + ';')
+
+            for t in estimated_thresholds:
+                f.write(str(t) + ';')
 
     # 6. display results
     display_estimated_thresholds(p_scene, estimated_thresholds, human_thresholds, image_indices[-1], zones_learned, p_save)
