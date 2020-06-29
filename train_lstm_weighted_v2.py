@@ -17,6 +17,7 @@ from sklearn.metrics import roc_auc_score, accuracy_score
 import tensorflow as tf
 from keras import backend as K
 import sklearn
+from sklearn.model_selection import train_test_split
 from joblib import dump
 
 import custom_config as cfg
@@ -85,6 +86,8 @@ def main():
     parser.add_argument('--train', type=str, help='input train dataset')
     parser.add_argument('--test', type=str, help='input test dataset')
     parser.add_argument('--output', type=str, help='output model name')
+    parser.add_argument('--epochs', type=int, help='number of expected epochs', default=30)
+    parser.add_argument('--batch_size', type=int, help='expected batch size for training model', default=64)
     parser.add_argument('--seq_norm', type=int, help='normalization sequence by features', choices=[0, 1])
     # parser.add_argument('--n_cores', type=int, help='specify expected number of core to use', default=8)
 
@@ -93,6 +96,8 @@ def main():
     p_train        = args.train
     p_test         = args.test
     p_output       = args.output
+    p_epochs       = args.epochs
+    p_batch_size   = args.batch_size
     p_seq_norm     = bool(args.seq_norm)
     # p_cores        = args.n_cores
 
@@ -141,24 +146,24 @@ def main():
     final_df_test = sklearn.utils.shuffle(dataset_test)
 
     # split dataset into X_train, y_train, X_test, y_test
-    X_train = final_df_train.loc[:, 1:].apply(lambda x: x.astype(str).str.split(' '))
-    X_train = build_input(X_train, p_seq_norm)
-    y_train = final_df_train.loc[:, 0].astype('int')
+    X_train_all = final_df_train.loc[:, 1:].apply(lambda x: x.astype(str).str.split('::'))
+    X_train_all = build_input(X_train_all, p_seq_norm)
+    y_train_all = final_df_train.loc[:, 0].astype('int')
 
-    X_test = final_df_test.loc[:, 1:].apply(lambda x: x.astype(str).str.split(' '))
+    X_test = final_df_test.loc[:, 1:].apply(lambda x: x.astype(str).str.split('::'))
     X_test = build_input(X_test, p_seq_norm)
     y_test = final_df_test.loc[:, 0].astype('int')
 
-    X_all = np.concatenate([X_train, X_test])
-    y_all = np.concatenate([y_train, y_test])
-
-    input_shape = (X_train.shape[1], X_train.shape[2])
+    input_shape = (X_train_all.shape[1], X_train_all.shape[2])
     print('Training data input shape', input_shape)
     model = create_model(input_shape)
     model.summary()
 
+    # prepare train and validation dataset
+    X_train, X_val, y_train, y_val = train_test_split(X_train_all, y_train_all, test_size=0.3, shuffle=False)
+
     print("Fitting model with custom class_weight", class_weight)
-    history = model.fit(X_train, y_train, batch_size=64, epochs=60, validation_split = 0.30, verbose=1, shuffle=True, class_weight=class_weight)
+    history = model.fit(X_train, y_train, batch_size=p_batch_size, epochs=p_epochs, validation_data=(X_val, y_val), verbose=1, shuffle=True, class_weight=class_weight)
 
     # list all data in history
     print(history.history.keys())
@@ -179,46 +184,52 @@ def main():
     # plt.legend(['train', 'test'], loc='upper left')
     # plt.show()
 
-    train_score, train_acc = model.evaluate(X_train, y_train, batch_size=1)
+    # train_score, train_acc = model.evaluate(X_train, y_train, batch_size=1)
 
-    print(train_acc)
+    # print(train_acc)
     y_train_predict = model.predict_classes(X_train)
+    y_val_predict = model.predict_classes(X_val)
     y_test_predict = model.predict_classes(X_test)
-    y_all_predict = model.predict_classes(X_all)
 
-    print(y_train_predict)
-    print(y_test_predict)
+    # print(y_train_predict)
+    # print(y_test_predict)
 
     auc_train = roc_auc_score(y_train, y_train_predict)
+    auc_val = roc_auc_score(y_val, y_val_predict)
     auc_test = roc_auc_score(y_test, y_test_predict)
-    auc_all = roc_auc_score(y_all, y_all_predict)
 
     acc_train = accuracy_score(y_train, y_train_predict)
+    acc_val = accuracy_score(y_val, y_val_predict)
     acc_test = accuracy_score(y_test, y_test_predict)
-    acc_all = accuracy_score(y_all, y_all_predict)
     
     print('Train ACC:', acc_train)
     print('Train AUC', auc_train)
+    print('Val ACC:', acc_val)
+    print('Val AUC', auc_val)
     print('Test ACC:', acc_test)
     print('Test AUC:', auc_test)
-    print('All ACC:', acc_all)
-    print('All AUC:', auc_all)
-
-
-    # save model results
-    if not os.path.exists(cfg.output_results_folder):
-        os.makedirs(cfg.output_results_folder)
-
-    results_filename = os.path.join(cfg.output_results_folder, cfg.results_filename)
-
-    with open(results_filename, 'a') as f:
-        f.write(p_output + ';' + str(acc_train) + ';' + str(auc_train) + ';' + str(acc_test) + ';' + str(auc_test) + '\n')
 
     # save model using joblib
     if not os.path.exists(cfg.output_models):
         os.makedirs(cfg.output_models)
 
     dump(model, os.path.join(cfg.output_models, p_output + '.joblib'))
+
+    # save model results
+    if not os.path.exists(cfg.output_results_folder):
+        os.makedirs(cfg.output_results_folder)
+
+    results_filename_path = os.path.join(cfg.output_results_folder, cfg.results_filename)
+
+    # write header if necessary
+    if not os.path.exists(results_filename_path):
+        with open(results_filename_path, 'w') as f:
+            f.write('name;train_acc;val_acc;test_acc;train_auc;val_auc;test_auc;\n')
+
+    with open(results_filename_path, 'a') as f:
+        f.write(p_output + ';' + str(acc_train) + ';' + str(acc_val) + ';' + str(acc_test) + ';' \
+             + str(auc_train) + ';' + str(auc_val) + ';' + str(auc_test) + '\n')
+
 
 if __name__ == "__main__":
     main()
