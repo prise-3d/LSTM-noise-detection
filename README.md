@@ -1,8 +1,8 @@
-# Models comparisons
+# LSTM noise detection
 
 ## Description
 
-Project developed in order to compare models performances using simulation of these models.
+Project developed in order to use LSTM (RNN) models for noise detection into synthesis images.
 
 ## Installation
 
