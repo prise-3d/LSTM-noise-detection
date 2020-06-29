@@ -39,7 +39,7 @@ def build_input(df):
         
         final_arr.append(v_data)
 
-    return np.array(final_arr)
+    return np.array(final_arr, 'float32')
 
 
 def create_model(input_shape):
@@ -121,8 +121,27 @@ def main():
     model.summary()
 
     print("Fitting model with custom class_weight", class_weight)
-    hist = model.fit(X_train, y_train, batch_size=32, epochs=100, validation_split = 0.2, verbose = 1, class_weight=class_weight)
+    history = model.fit(X_train, y_train, batch_size=32, epochs=35, validation_split = 0.33, verbose = 1, class_weight=class_weight)
 
+
+    # list all data in history
+    print(history.history.keys())
+    # summarize history for accuracy
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
+    plt.title('model accuracy')
+    plt.ylabel('accuracy')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.show()
+    # summarize history for loss
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('model loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['train', 'test'], loc='upper left')
+    plt.show()
 
     train_score, train_acc = model.evaluate(X_train, y_train, batch_size=1)
 

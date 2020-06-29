@@ -95,36 +95,32 @@ def main():
     parser.add_argument('--sequence', type=int, help='sequence length expected')
     parser.add_argument('--n_stop', type=int, help='n elements for stopping criteria', default=1)
     parser.add_argument('--imnorm', type=int, help="specify if image is normalized before computing something", default=0, choices=[0, 1])
-    parser.add_argument('--learned_zones', type=str, help="Filename which specifies if zones are learned or not and which zones", default="")
-    parser.add_argument('--scene', type=str, help='Scene index to use', choices=cfg.scenes_indices)
+    parser.add_argument('--selected_zones', type=str, help="Filename which specifies if zones are learned or not and which zones", default="")
+    parser.add_argument('--scene', type=str, help='Scene folder to use')
     parser.add_argument('--save', type=int, help='save or not figure', choices=[0, 1])
+    parser.add_argument('--thresholds', type=str, help='file which cantains all thresholds')
     parser.add_argument('--save_thresholds', type=str, help='save or not thresholds')
     parser.add_argument('--label_thresholds', type=str, help='thresholds method label')
     parser.add_argument('--seq_norm', type=int, help='normalization sequence by features', choices=[0, 1])
 
     args = parser.parse_args()
 
-    p_model    = args.model
-    p_method   = args.method
-    p_params   = args.params
-    p_sequence = args.sequence
-    p_n_stop   = args.n_stop
-    p_imnorm   = args.imnorm
-    p_zones    = args.learned_zones
-    p_scene    = args.scene
-    p_save     = bool(args.save)
+    p_model      = args.model
+    p_method     = args.method
+    p_params     = args.params
+    p_sequence   = args.sequence
+    p_n_stop     = args.n_stop
+    p_imnorm     = args.imnorm
+    p_zones      = args.selected_zones
+    p_scene      = args.scene
+    p_save       = bool(args.save)
+    p_thresholds = args.thresholds
     p_save_thresholds = args.save_thresholds
     p_label_thresholds = args.label_thresholds
-    p_seq_norm     = bool(args.seq_norm)
+    p_seq_norm   = bool(args.seq_norm)
 
     # 1. get scene name
-    scenes_list = cfg.scenes_names
-    scenes_indices = cfg.scenes_indices
-
-    scene_index = scenes_indices.index(p_scene.strip())
-    scene = scenes_list[scene_index]
-
-    scene_path = os.path.join(cfg.dataset_path, scene)
+    scene_path = os.path.join(cfg.dataset_path, p_scene)
 
     # 2. load model and compile it
     model = joblib.load(p_model)
@@ -139,22 +135,18 @@ def main():
 
     # 3. retrieve human_thresholds
     # construct zones folder
-    zones_list = []
+    with open(p_thresholds) as f:
+        thresholds_line = f.readlines()
 
-    for index in zones_indices:
+        for line in thresholds_line:
+            data = line.split(';')
+            del data[-1] # remove unused last element `\n`
+            current_scene = data[0]
+            thresholds_scene = data[1:]
 
-        index_str = str(index)
+            if p_scene == current_scene:
+                human_thresholds = [ int(threshold) for threshold in  thresholds_scene ]
 
-        while len(index_str) < 2:
-            index_str = "0" + index_str
-        
-        zones_list.append(cfg.zone_folder + index_str)
-
-    for zone in zones_list:
-            zone_path = os.path.join(scene_path, zone)
-
-            with open(os.path.join(zone_path, cfg.seuil_expe_filename), 'r') as f:
-                human_thresholds.append(int(f.readline()))
 
     # 4. get estimated thresholds using model and specific method
     images_path = sorted([os.path.join(scene_path, img) for img in os.listdir(scene_path) if cfg.scene_image_extension in img])
@@ -167,7 +159,7 @@ def main():
     print(human_thresholds)
 
     # append empty list
-    for zone in zones_list:
+    for _ in np.arange(16):
         blocks_sequence.append([])
         estimated_thresholds.append(None)
         n_estimated_thresholds.append(0)
@@ -194,13 +186,13 @@ def main():
                     else:
                         # check if sequence normalization is used
                         if p_seq_norm:
-
-                            s, f = data.shape
+                            for _, seq in enumerate(data):
                                 
-                            for i in range(f):
-                                #final_arr[index][]
-                                data[:, i] = utils.normalize_arr_with_range(data[:, i])
-
+                                s, f = data.shape
+                                for i in range(f):
+                                    #final_arr[index][]
+                                    data[:, i] = utils.normalize_arr_with_range(data[:, i])
+                                    
                     data = np.expand_dims(data, axis=0)
                     
                     prob = model.predict(data, batch_size=1)[0][0]
@@ -215,6 +207,7 @@ def main():
                     else:
                         n_estimated_thresholds[index] = 0
 
+                    #print('Block @', index, ':', len(blocks_sequence[index]))
                     # delete first element (just like sliding window)
                     del blocks_sequence[index][0]
 
@@ -224,7 +217,7 @@ def main():
         image_counter = image_counter + 1
     
     # default label
-    for i, _ in enumerate(zones_list):
+    for i in np.arange(16):
         if estimated_thresholds[i] == None:
             estimated_thresholds[i] = image_indices[-1]
 
@@ -238,9 +231,8 @@ def main():
             for line in lines:
                 data = line.split(';')
 
-                if data[0] == scene:
+                if data[0] == current_scene:
                     zones_learned = data[1:]
-
 
     if p_save_thresholds is not None:
         with open(p_save_thresholds, 'a') as f:
@@ -250,7 +242,7 @@ def main():
                 f.write(str(t) + ';')
 
     # 6. display results
-    display_estimated_thresholds(scene, estimated_thresholds, human_thresholds, image_indices[-1], zones_learned, p_save)
+    display_estimated_thresholds(p_scene, estimated_thresholds, human_thresholds, image_indices[-1], zones_learned, p_save)
 
 if __name__== "__main__":
     main()
