@@ -48,11 +48,11 @@ def main():
 
     parser = argparse.ArgumentParser(description="Read and compute entropy data file (using diff)")
 
-    parser.add_argument('--data', type=str, help='entropy file data to read and compute')
+    parser.add_argument('--data', type=str, help='file data to read and compute')
     parser.add_argument('--output', type=str, help='output dataset prefix file used (saved into .train and .test extension)')
     parser.add_argument('--sequence', type=int, help='sequence length expected')
-    parser.add_argument('--n_zones', type=int, help='number of zones used in train', default='')
-    parser.add_argument('--learned_zones', type=str, help='file with specific training zone')
+    parser.add_argument('--n_zones', type=int, help='number of zones used in train', default=0)
+    parser.add_argument('--selected_zones', type=str, help='file with specific training zone')
 
     args = parser.parse_args()
 
@@ -60,14 +60,14 @@ def main():
     p_output       = args.output
     p_sequence     = args.sequence
     p_n_zones      = args.n_zones
-    p_learned_zones = args.learned_zones
+    p_selected_zones = args.selected_zones
 
     learned_zones = None
 
-    if p_learned_zones is not None:
+    if p_selected_zones is not None:
         print('Use of specific learned zones')
 
-        with open(p_learned_zones, 'r') as f:
+        with open(p_selected_zones, 'r') as f:
             lines = f.readlines()
 
             learned_zones = {}

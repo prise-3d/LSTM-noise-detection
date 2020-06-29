@@ -16,7 +16,6 @@ from modules.utils import data as dt
 
 from features_extractions import extract_data
 
-dataset_folder = cfg.dataset_path
 zones_indices  = cfg.zones_indices
 block_size     = (200, 200)
 
@@ -46,14 +45,16 @@ def main():
 
     parser = argparse.ArgumentParser(description="Extract data from image dataset")
 
-    parser.add_argument('--thresholds', type=str, help='file which contains all thresholds')
-    parser.add_argument('--output', type=str, help='save computed data for each zone of each scene into file')
+    parser.add_argument('--dataset', type=str, help='folder dataset with all scenes', required=True)
+    parser.add_argument('--thresholds', type=str, help='file which contains all thresholds', required=True)
     parser.add_argument('--method', type=str, help='method name to used', choices=cfg.features_choices_labels, default=cfg.features_choices_labels[0])
-    parser.add_argument('--params', type=str, help='param of the method used', default="")
+    parser.add_argument('--params', type=str, help='param of the method used', default="", required=True)
     parser.add_argument('--imnorm', type=int, help="specify if image is normalized before computing something", default=0, choices=[0, 1])
+    parser.add_argument('--output', type=str, help='save computed data for each zone of each scene into file', required=True)
 
     args = parser.parse_args()
 
+    p_folder     = args.dataset
     p_thresholds = args.thresholds
     p_output     = args.output
     p_method     = args.method
@@ -89,7 +90,7 @@ def main():
     # create dictionnary of threshold and get all images path
     for scene in scenes_list:
 
-        scene_path = os.path.join(dataset_folder, scene)
+        scene_path = os.path.join(p_folder, scene)
 
         images_path[scene] = sorted([os.path.join(scene_path, img) for img in os.listdir(scene_path) if cfg.scene_image_extension in img])
         number_of_images = number_of_images + len(images_path[scene])

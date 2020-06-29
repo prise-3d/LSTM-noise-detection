@@ -95,7 +95,7 @@ def main():
     parser.add_argument('--sequence', type=int, help='sequence length expected')
     parser.add_argument('--n_stop', type=int, help='n elements for stopping criteria', default=1)
     parser.add_argument('--imnorm', type=int, help="specify if image is normalized before computing something", default=0, choices=[0, 1])
-    parser.add_argument('--learned_zones', type=str, help="Filename which specifies if zones are learned or not and which zones", default="")
+    parser.add_argument('--selected_zones', type=str, help="Filename which specifies if zones are learned or not and which zones", default="")
     parser.add_argument('--scene', type=str, help='Scene folder to use')
     parser.add_argument('--save', type=int, help='save or not figure', choices=[0, 1])
     parser.add_argument('--thresholds', type=str, help='file which cantains all thresholds')
@@ -111,7 +111,7 @@ def main():
     p_sequence   = args.sequence
     p_n_stop     = args.n_stop
     p_imnorm     = args.imnorm
-    p_zones      = args.learned_zones
+    p_zones      = args.selected_zones
     p_scene      = args.scene
     p_save       = bool(args.save)
     p_thresholds = args.thresholds
