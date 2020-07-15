@@ -146,11 +146,11 @@ def main():
     final_df_test = sklearn.utils.shuffle(dataset_test)
 
     # split dataset into X_train, y_train, X_test, y_test
-    X_train_all = final_df_train.loc[:, 1:].apply(lambda x: x.astype(str).str.split('::'))
+    X_train_all = final_df_train.loc[:, 1:].apply(lambda x: x.astype(str).str.split(' '))
     X_train_all = build_input(X_train_all, p_seq_norm)
     y_train_all = final_df_train.loc[:, 0].astype('int')
 
-    X_test = final_df_test.loc[:, 1:].apply(lambda x: x.astype(str).str.split('::'))
+    X_test = final_df_test.loc[:, 1:].apply(lambda x: x.astype(str).str.split(' '))
     X_test = build_input(X_test, p_seq_norm)
     y_test = final_df_test.loc[:, 0].astype('int')
 
