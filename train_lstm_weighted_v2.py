@@ -18,7 +18,6 @@ import tensorflow as tf
 from keras import backend as K
 import sklearn
 from sklearn.model_selection import train_test_split
-from joblib import dump
 
 import custom_config as cfg
 
@@ -187,9 +186,9 @@ def main():
     # train_score, train_acc = model.evaluate(X_train, y_train, batch_size=1)
 
     # print(train_acc)
-    y_train_predict = model.predict_classes(X_train)
-    y_val_predict = model.predict_classes(X_val)
-    y_test_predict = model.predict_classes(X_test)
+    y_train_predict = [ 1 if x > 0.5 else 0 for x in model.predict(X_train) ]
+    y_val_predict = [ 1 if x > 0.5 else 0 for x in model.predict(X_val) ]
+    y_test_predict = [ 1 if x > 0.5 else 0 for x in model.predict(X_test) ]
 
     # print(y_train_predict)
     # print(y_test_predict)
@@ -209,11 +208,11 @@ def main():
     print('Test ACC:', acc_test)
     print('Test AUC:', auc_test)
 
-    # save model using joblib
+    # save model using h5
     if not os.path.exists(cfg.output_models):
         os.makedirs(cfg.output_models)
 
-    dump(model, os.path.join(cfg.output_models, p_output + '.joblib'))
+    model.save(os.path.join(cfg.output_models, p_output + '.h5'))
 
     # save model results
     if not os.path.exists(cfg.output_results_folder):
