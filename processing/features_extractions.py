@@ -59,7 +59,6 @@ def _extract_svd_entropy(image, params):
     sigma = transform.get_LAB_L_SVD_s(image)
     return get_entropy(sigma[begin:end])
 
-
 def _extract_svd_entropy_split(image, params):
     
     begin, end, split = tuple(map(int, params.split(',')))
@@ -123,22 +122,19 @@ def _extract_svd_entropy_norm(image, params):
 
 def _extract_svd_entropy_blocks(image, params):
     
-    w_block, h_block = tuple(map(int, params.split(',')))
+    # params : w_b, w_h, begin_sv, end_sv
+    w_b, w_h, begin, end = tuple(map(int, params.split(',')))
 
-    # get L channel
-    L_channel = transform.get_LAB_L(image)
+    l_image = transform.get_LAB_L(image)
+    blocks = segmentation.divide_in_blocks(l_image, (w_b, w_h))
 
-    # split in n block
-    blocks = segmentation.divide_in_blocks(L_channel, (w_block, h_block))
+    entropies = []
 
-    entropy_list = []
+    for b in blocks:
+        sigma = compression.get_SVD_s(b)
+        entropies.append(get_entropy(sigma[begin:end]))
 
-    for block in blocks:
-        reduced_sigma = compression.get_SVD_s(block)
-        reduced_entropy = get_entropy(reduced_sigma)
-        entropy_list.append(reduced_entropy)
-
-    return entropy_list
+    return entropies
 
 
 def _extract_svd_entropy_blocks_norm(image, params):
