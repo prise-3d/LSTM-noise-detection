@@ -4,7 +4,7 @@ import argparse
 
 
 n_epochs = 30
-generated_datasets_folder = "data/datasets/{0}"
+generated_datasets_folder = "data/datasets/{0}/{1}"
 
 
 def main():
@@ -41,7 +41,7 @@ def main():
             for norm in [0, 1]:
 
                 # run pytorch RNN model with generated dataset file
-                output_dataset_name_path = generated_datasets_folder.format(output_dataset_name)
+                output_dataset_name_path = generated_datasets_folder.format(output_dataset_name, output_dataset_name)
 
                 for b_size in [64, 128]:
                     
@@ -53,12 +53,12 @@ def main():
 
                     output_model_name += "_bsize" + str(b_size)
                     
-                    command_run_model = "python train_lstm_weighted --train {0}.train --test {1}.test --output {2} --batch_size {3} --epochs {4} --seq_norm {5}" \
+                    command_run_model = "python train_lstm_weighted.py --train {0}.train --test {1}.test --output {2} --batch_size {3} --epochs {4} --seq_norm {5}" \
                         .format(output_dataset_name_path, output_dataset_name_path, output_model_name, b_size, n_epochs, norm)
 
                     print("Start running model {0}".format(output_model_name))
                     # print(command_run_model)
-                    subprocess.call(command_dataset, shell=True)
+                    subprocess.call(command_run_model, shell=True)
 
 if __name__ == "__main__":
     main()
