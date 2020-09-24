@@ -35,8 +35,8 @@ def main():
 
             
             print("Prepare dataset with name {0}".format(output_dataset_name))
-            print(command_dataset)
-            # subprocess.call(command_dataset, shell=True)
+            # print(command_dataset)
+            subprocess.call(command_dataset, shell=True)
 
             for norm in [0, 1]:
 
@@ -57,8 +57,8 @@ def main():
                         .format(output_dataset_name_path, output_dataset_name_path, output_model_name, b_size, n_epochs, norm)
 
                     print("Start running model {0}".format(output_model_name))
-                    print(command_run_model)
-                    # subprocess.call(command_dataset, shell=True)
+                    # print(command_run_model)
+                    subprocess.call(command_dataset, shell=True)
 
 if __name__ == "__main__":
     main()
