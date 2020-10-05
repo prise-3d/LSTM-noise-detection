@@ -245,7 +245,7 @@ def main():
                 f.write(str(t) + ';')
 
     # 6. display results
-    display_estimated_thresholds(p_scene, estimated_thresholds, human_thresholds, image_indices[-1], zones_learned, p_save)
+    display_estimated_thresholds(scene_name, estimated_thresholds, human_thresholds, image_indices[-1], zones_learned, p_save)
 
 if __name__== "__main__":
     main()
