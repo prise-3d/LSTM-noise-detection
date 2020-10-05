@@ -134,6 +134,8 @@ def main():
     n_estimated_thresholds = []
     human_thresholds = []
 
+    _, scene_name = os.path.split(p_scene)
+
     # 3. retrieve human_thresholds
     # construct zones folder
     with open(p_thresholds) as f:
@@ -145,7 +147,7 @@ def main():
             current_scene = data[0]
             thresholds_scene = data[1:]
 
-            if p_scene == current_scene:
+            if scene_name == current_scene:
                 human_thresholds = [ int(threshold) for threshold in  thresholds_scene ]
 
 
