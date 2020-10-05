@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 
 # model imports
 import joblib
+from keras.models import load_model
 
 # modules and config imports
 sys.path.insert(0, '') # trick to enable import of main folder module
@@ -123,7 +124,7 @@ def main():
     scene_path = os.path.join(cfg.dataset_path, p_scene)
 
     # 2. load model and compile it
-    model = joblib.load(p_model)
+    model = load_model(p_model)
     model.compile(loss='binary_crossentropy',
                   optimizer='rmsprop',
                   metrics=['accuracy'])
