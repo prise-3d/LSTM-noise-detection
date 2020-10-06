@@ -55,13 +55,17 @@ def display_estimated_thresholds(scene, estimated, humans, max_index, zones_lear
     
     plt.plot(estimated, 
              color=colors[0], 
-             label='Estimated thresholds')
+             label='Estimated thresholds',
+             lw=3)
 
     
     plt.plot(humans, 
              color=colors[1], 
-             label='Human thresholds')
+             label='Human thresholds', 
+             lw=3)
         
+
+    plt.xticks(zones_indices)
 
     if zones_learned:
 
@@ -78,7 +82,6 @@ def display_estimated_thresholds(scene, estimated, humans, max_index, zones_lear
     plt.ylabel('Number of samples', fontsize=28)
 
     plt.ylim(0, max_index) 
-    plt.xticks(zones_indices)
     plt.title('Comparisons of estimated vs human thresholds for ' + scene, fontsize=22)
     plt.legend(fontsize=26)
 
@@ -249,6 +252,7 @@ def main():
 
             for t in estimated_thresholds:
                 f.write(str(t) + ';')
+            f.write('\n')
 
     # 6. display results
     display_estimated_thresholds(scene_name, estimated_thresholds, human_thresholds, image_indices[-1], zones_learned, p_save)
