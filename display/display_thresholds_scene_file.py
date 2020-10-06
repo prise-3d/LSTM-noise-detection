@@ -63,14 +63,16 @@ def display_estimated_thresholds(scene, estimated, humans, max_index, zones_lear
              label='Human thresholds')
         
 
-    if zones_learned is not None:
-        del zones_learned[-1]
-        zones_learned = [ int(i) for i in zones_learned ]
+    if zones_learned:
 
-        for x, estimation in enumerate(estimated):
-
-            if x in zones_learned:
-                plt.scatter(x, estimation, s=30, marker='H', color='red')
+        for i in cfg.zones_indices:
+            if i in zones_learned:
+                
+                plt.plot([i, i], [y_lim[0], y_lim[1]], '--', color='black', alpha=0.5)
+                plt.gca().get_xticklabels()[i].set_color('black')
+            else:
+                plt.plot([i, i], [y_lim[0], y_lim[1]], '-.', color='red', alpha=0.5)
+                plt.gca().get_xticklabels()[i].set_color('red')
     
 
     plt.ylim(0, max_index) 
@@ -189,12 +191,15 @@ def main():
                     else:
                         # check if sequence normalization is used
                         if p_seq_norm:
-                            for _, seq in enumerate(data):
+
+                            # check snorm process
+                            #for _, seq in enumerate(data):
                                 
-                                s, f = data.shape
-                                for i in range(f):
-                                    #final_arr[index][]
-                                    data[:, i] = utils.normalize_arr_with_range(data[:, i])
+                            s, f = data.shape
+                            print(data.shape)
+                            for i in range(f):
+                                #final_arr[index][]
+                                data[:, i] = utils.normalize_arr_with_range(data[:, i])
                                     
                     data = np.expand_dims(data, axis=0)
                     

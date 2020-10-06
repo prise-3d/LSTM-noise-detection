@@ -59,7 +59,7 @@ output_f = open(p_output, 'w')
 
 output_f.write('\\begin{tabular}{|r|r|c|c|r|r|r|r|r|r|} \n')
 output_f.write('\t\hline \n')
-output_f.write('\t\\textbf{$k$} & \\textbf{$m$} & \\textbf{$m_i$ SV size} & \\textbf{batch} & \\textbf{$snorm$} & \\textbf{$bnorm$} & \\textbf{Accuracy Train} & \\textbf{Accuracy Test} & \\textbf{AUC Train} & \\textbf{AUC Test} \\\\ \n')
+output_f.write('\t\\textbf{$k$} & \\textbf{$m$} & \\textbf{$m_i$ SV size} & \\textbf{batch} & \\textbf{$bnorm$} & \\textbf{$snorm$} & \\textbf{Accuracy Train} & \\textbf{Accuracy Test} & \\textbf{AUC Train} & \\textbf{AUC Test} \\\\ \n')
 output_f.write('\t\hline \n')
 
 output_values = sorted(output_values, key=lambda l:l[-1], reverse=True)
