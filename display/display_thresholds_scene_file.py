@@ -127,8 +127,10 @@ def main():
     p_label_thresholds = args.label_thresholds
     p_seq_norm   = bool(args.seq_norm)
 
-    # 1. get scene name
-    scene_path = os.path.join(cfg.dataset_path, p_scene)
+
+    # scene path by default
+    scene_path = p_scene
+    _, scene_name = os.path.split(p_scene)
 
     # 2. load model and compile it
     model = load_model(p_model)
@@ -140,8 +142,6 @@ def main():
     estimated_thresholds = []
     n_estimated_thresholds = []
     human_thresholds = []
-
-    _, scene_name = os.path.split(p_scene)
 
     # 3. retrieve human_thresholds
     # construct zones folder
@@ -157,6 +157,17 @@ def main():
             if scene_name == current_scene:
                 human_thresholds = [ int(threshold) for threshold in  thresholds_scene ]
 
+    zones_learned = None
+
+    if len(p_zones) > 0:
+        with open(p_zones, 'r') as f:
+            lines = f.readlines()
+
+            for line in lines:
+                data = line.split(';')
+
+                if data[0] == scene_name:
+                    zones_learned = data[1:]
 
     # 4. get estimated thresholds using model and specific method
     images_path = sorted([os.path.join(scene_path, img) for img in os.listdir(scene_path) if cfg.scene_image_extension in img])
@@ -167,7 +178,8 @@ def main():
     image_counter = 0
 
     print(human_thresholds)
-
+    print(zones_learned)
+    
     # append empty list
     for _ in np.arange(16):
         blocks_sequence.append([])
@@ -234,18 +246,6 @@ def main():
             estimated_thresholds[i] = image_indices[-1]
 
     # 5. check if learned zones
-    zones_learned = None
-
-    if len(p_zones) > 0:
-        with open(p_zones, 'r') as f:
-            lines = f.readlines()
-
-            for line in lines:
-                data = line.split(';')
-
-                if data[0] == current_scene:
-                    zones_learned = data[1:]
-
     if p_save_thresholds is not None:
         with open(p_save_thresholds, 'a') as f:
             f.write(p_label_thresholds + ';')
