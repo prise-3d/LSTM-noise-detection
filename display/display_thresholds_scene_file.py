@@ -165,9 +165,11 @@ def main():
 
             for line in lines:
                 data = line.split(';')
+                
 
                 if data[0] == scene_name:
-                    zones_learned = data[1:]
+                    del data[-1]
+                    zones_learned = list(map(int, data[1:]))
 
     # 4. get estimated thresholds using model and specific method
     images_path = sorted([os.path.join(scene_path, img) for img in os.listdir(scene_path) if cfg.scene_image_extension in img])
@@ -179,7 +181,7 @@ def main():
 
     print(human_thresholds)
     print(zones_learned)
-    
+
     # append empty list
     for _ in np.arange(16):
         blocks_sequence.append([])
