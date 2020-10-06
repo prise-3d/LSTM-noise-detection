@@ -65,7 +65,7 @@ def display_estimated_thresholds(scene, estimated, humans, max_index, zones_lear
              lw=3)
         
 
-    plt.xticks(zones_indices)
+    plt.xticks(zones_indices, label=[ str(i) for i in (zones_indices + 1) ])
 
     if zones_learned:
 
