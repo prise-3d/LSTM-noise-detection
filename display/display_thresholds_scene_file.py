@@ -48,10 +48,10 @@ def write_progress(progress):
 def display_estimated_thresholds(scene, estimated, humans, max_index, zones_learned=None, p_save=False):
     
     colors = ['C0', 'C1', 'C2', 'C3']
-    
+
     plt.figure(figsize=(25, 20))
-    plt.rc('xtick', labelsize=16)    # fontsize of the tick labels
-    plt.rc('ytick', labelsize=16)    # fontsize of the tick labels
+    plt.rc('xtick', labelsize=22)    # fontsize of the tick labels
+    plt.rc('ytick', labelsize=22)    # fontsize of the tick labels
     
     plt.plot(estimated, 
              color=colors[0], 
@@ -68,17 +68,19 @@ def display_estimated_thresholds(scene, estimated, humans, max_index, zones_lear
         for i in cfg.zones_indices:
             if i in zones_learned:
                 
-                plt.plot([i, i], [y_lim[0], y_lim[1]], '--', color='black', alpha=0.5)
+                plt.plot([i, i], [0, max_index], '--', color='black', alpha=0.5)
                 plt.gca().get_xticklabels()[i].set_color('black')
             else:
-                plt.plot([i, i], [y_lim[0], y_lim[1]], '-.', color='red', alpha=0.5)
+                plt.plot([i, i], [0, max_index], '-.', color='red', alpha=0.5)
                 plt.gca().get_xticklabels()[i].set_color('red')
     
+    plt.xlabel('Image zone indices', fontsize=28)
+    plt.ylabel('Number of samples', fontsize=28)
 
     plt.ylim(0, max_index) 
     plt.xticks(zones_indices)
     plt.title('Comparisons of estimated vs human thresholds for ' + scene, fontsize=22)
-    plt.legend(fontsize=20)
+    plt.legend(fontsize=26)
 
     if p_save:
 
@@ -196,7 +198,6 @@ def main():
                             #for _, seq in enumerate(data):
                                 
                             s, f = data.shape
-                            print(data.shape)
                             for i in range(f):
                                 #final_arr[index][]
                                 data[:, i] = utils.normalize_arr_with_range(data[:, i])
