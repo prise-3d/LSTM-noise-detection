@@ -66,7 +66,7 @@ output_values = sorted(output_values, key=lambda l:l[-1], reverse=True)
 
 # for each data
 for v in output_values[:20]:
-    output_f.write('\t{0} & {1} & {2} & {3} & {4} & {5} & {6:.3f} & {7:.3f} & {8:.3f} & {9:.3f} \\\\ \n' \
+    output_f.write('\t{0} & {1} & {2} & {3} & {4} & {5} & {6:.4f} & {7:.4f} & {8:.4f} & {9:.4f} \\\\ \n' \
         .format(v[0], int(v[1]), "[{0}, {1}]".format(int(v[2][0]), int(v[2][1])), int(v[3]), int(v[4]), int(v[5]), v[6], v[7], v[8],  v[9]))
 
 output_f.write('\t\hline \n')

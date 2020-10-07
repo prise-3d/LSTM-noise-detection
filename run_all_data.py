@@ -68,7 +68,7 @@ def main():
 
                     output_model_name += "_bsize" + str(b_size)
 
-                    if output_dataset_name not in already_runned:
+                    if output_model_name not in already_runned:
                         
                         command_run_model = "python train_lstm_weighted.py --train {0}.train --test {1}.test --output {2} --batch_size {3} --epochs {4} --seq_norm {5}" \
                             .format(output_dataset_name_path, output_dataset_name_path, output_model_name, b_size, n_epochs, norm)
