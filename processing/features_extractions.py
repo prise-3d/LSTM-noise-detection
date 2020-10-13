@@ -334,6 +334,8 @@ def _filters_statistics(image, params):
     
     data = np.array(data)
 
+    return data
+
 def extract_data(image, method, params = None):
 
     if method == 'svd_entropy':
