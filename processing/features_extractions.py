@@ -10,6 +10,7 @@ import cv2
 from ipfml.utils import get_entropy, normalize_arr, normalize_arr_with_range
 from ipfml.processing import transform, compression, segmentation
 
+from skimage import color, restoration
 from numpy.linalg import svd as lin_svd
 from scipy.signal import medfilt2d, wiener, cwt
 import pywt
