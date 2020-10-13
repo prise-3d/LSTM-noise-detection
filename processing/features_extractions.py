@@ -334,7 +334,7 @@ def _filters_statistics(image, params):
     
     data = np.array(data)
 
-    return data
+    return list(data)
 
 def extract_data(image, method, params = None):
 
