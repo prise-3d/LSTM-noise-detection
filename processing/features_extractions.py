@@ -10,6 +10,10 @@ import cv2
 from ipfml.utils import get_entropy, normalize_arr, normalize_arr_with_range
 from ipfml.processing import transform, compression, segmentation
 
+from numpy.linalg import svd as lin_svd
+from scipy.signal import medfilt2d, wiener, cwt
+import pywt
+import cv2
 
 def _extract_svd(image, params):
     begin, end = tuple(map(int, params.split(',')))
@@ -271,7 +275,7 @@ def _filters_statistics(image, params):
 
     img_width, img_height = 200, 200
 
-    lab_img = transform.get_LAB_L(block)
+    lab_img = transform.get_LAB_L(image)
     arr = np.array(lab_img)
 
     # compute all filters statistics
