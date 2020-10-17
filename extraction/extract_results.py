@@ -42,7 +42,13 @@ with open(p_results, 'r') as f:
 
         output_line.append(sequence_size)
         output_line.append((200 / w_size) * (200 / h_size))
-        output_line.append((sv_begin, sv_end))
+
+        if sv_begin == 0:
+            h_svd = "$H_{SVD}$"
+        else:
+            h_svd = "$H'_{SVD}$"
+
+        output_line.append(h_svd)
         output_line.append(model_name.split('bsize')[-1])
         output_line.append(bnorm)
         output_line.append(snorm)
@@ -59,7 +65,7 @@ output_f = open(p_output, 'w')
 
 output_f.write('\\begin{tabular}{|r|r|c|c|r|r|r|r|r|r|} \n')
 output_f.write('\t\hline \n')
-output_f.write('\t\\textbf{$k$} & \\textbf{$m$} & \\textbf{$m_i$ SV size} & \\textbf{batch} & \\textbf{$bnorm$} & \\textbf{$snorm$} & \\textbf{Acc Train} & \\textbf{Acc Test} & \\textbf{AUC Train} & \\textbf{AUC Test} \\\\ \n')
+output_f.write('\t\\textbf{$k$} & \\textbf{$m$} & \\textbf{$F$} & \\textbf{$b_s$} & \\textbf{$bnorm$} & \\textbf{$snorm$} & \\textbf{Acc Train} & \\textbf{Acc Test} & \\textbf{AUC Train} & \\textbf{AUC Test} \\\\ \n')
 output_f.write('\t\hline \n')
 
 output_values = sorted(output_values, key=lambda l:l[-1], reverse=True)
@@ -67,7 +73,7 @@ output_values = sorted(output_values, key=lambda l:l[-1], reverse=True)
 # for each data
 for v in output_values[:20]:
     output_f.write('\t{0} & {1} & {2} & {3} & {4} & {5} & {6:.4f} & {7:.4f} & {8:.4f} & {9:.4f} \\\\ \n' \
-        .format(v[0], int(v[1]), "[{0}, {1}]".format(int(v[2][0]), int(v[2][1])), int(v[3]), int(v[4]), int(v[5]), v[6], v[7], v[8],  v[9]))
+        .format(v[0], int(v[1]), v[2], int(v[3]), int(v[4]), int(v[5]), v[6], v[7], v[8],  v[9]))
 
 output_f.write('\t\hline \n')
 output_f.write('\end{tabular} \n')
