@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 
 # model imports
 import joblib
+from keras.models import load_model
 
 # modules and config imports
 sys.path.insert(0, '') # trick to enable import of main folder module
@@ -47,35 +48,42 @@ def write_progress(progress):
 def display_estimated_thresholds(scene, estimated, humans, max_index, zones_learned=None, p_save=False):
     
     colors = ['C0', 'C1', 'C2', 'C3']
-    
+
     plt.figure(figsize=(25, 20))
-    plt.rc('xtick', labelsize=16)    # fontsize of the tick labels
-    plt.rc('ytick', labelsize=16)    # fontsize of the tick labels
+    plt.rc('xtick', labelsize=22)    # fontsize of the tick labels
+    plt.rc('ytick', labelsize=22)    # fontsize of the tick labels
     
     plt.plot(estimated, 
              color=colors[0], 
-             label='Estimated thresholds')
+             label='Estimated thresholds',
+             lw=3)
 
     
     plt.plot(humans, 
              color=colors[1], 
-             label='Human thresholds')
+             label='Human thresholds', 
+             lw=3)
         
 
-    if zones_learned is not None:
-        del zones_learned[-1]
-        zones_learned = [ int(i) for i in zones_learned ]
+    plt.xticks(zones_indices, label=[ str(i) for i in (zones_indices + 1) ])
 
-        for x, estimation in enumerate(estimated):
+    if zones_learned:
 
-            if x in zones_learned:
-                plt.scatter(x, estimation, s=30, marker='H', color='red')
+        for i in cfg.zones_indices:
+            if i in zones_learned:
+                
+                plt.plot([i, i], [0, max_index], '--', color='black', alpha=0.5)
+                plt.gca().get_xticklabels()[i].set_color('black')
+            else:
+                plt.plot([i, i], [0, max_index], '-.', color='red', alpha=0.5)
+                plt.gca().get_xticklabels()[i].set_color('red')
     
+    plt.xlabel('Image zone indices', fontsize=28)
+    plt.ylabel('Number of samples', fontsize=28)
 
     plt.ylim(0, max_index) 
-    plt.xticks(zones_indices)
     plt.title('Comparisons of estimated vs human thresholds for ' + scene, fontsize=22)
-    plt.legend(fontsize=20)
+    plt.legend(fontsize=26)
 
     if p_save:
 
@@ -119,11 +127,13 @@ def main():
     p_label_thresholds = args.label_thresholds
     p_seq_norm   = bool(args.seq_norm)
 
-    # 1. get scene name
-    scene_path = os.path.join(cfg.dataset_path, p_scene)
+
+    # scene path by default
+    scene_path = p_scene
+    _, scene_name = os.path.split(p_scene)
 
     # 2. load model and compile it
-    model = joblib.load(p_model)
+    model = load_model(p_model)
     model.compile(loss='binary_crossentropy',
                   optimizer='rmsprop',
                   metrics=['accuracy'])
@@ -144,9 +154,22 @@ def main():
             current_scene = data[0]
             thresholds_scene = data[1:]
 
-            if p_scene == current_scene:
+            if scene_name == current_scene:
                 human_thresholds = [ int(threshold) for threshold in  thresholds_scene ]
 
+    zones_learned = None
+
+    if len(p_zones) > 0:
+        with open(p_zones, 'r') as f:
+            lines = f.readlines()
+
+            for line in lines:
+                data = line.split(';')
+                
+
+                if data[0] == scene_name:
+                    del data[-1]
+                    zones_learned = list(map(int, data[1:]))
 
     # 4. get estimated thresholds using model and specific method
     images_path = sorted([os.path.join(scene_path, img) for img in os.listdir(scene_path) if cfg.scene_image_extension in img])
@@ -157,6 +180,7 @@ def main():
     image_counter = 0
 
     print(human_thresholds)
+    print(zones_learned)
 
     # append empty list
     for _ in np.arange(16):
@@ -186,12 +210,14 @@ def main():
                     else:
                         # check if sequence normalization is used
                         if p_seq_norm:
-                            for _, seq in enumerate(data):
+
+                            # check snorm process
+                            #for _, seq in enumerate(data):
                                 
-                                s, f = data.shape
-                                for i in range(f):
-                                    #final_arr[index][]
-                                    data[:, i] = utils.normalize_arr_with_range(data[:, i])
+                            s, f = data.shape
+                            for i in range(f):
+                                #final_arr[index][]
+                                data[:, i] = utils.normalize_arr_with_range(data[:, i])
                                     
                     data = np.expand_dims(data, axis=0)
                     
@@ -222,27 +248,16 @@ def main():
             estimated_thresholds[i] = image_indices[-1]
 
     # 5. check if learned zones
-    zones_learned = None
-
-    if len(p_zones) > 0:
-        with open(p_zones, 'r') as f:
-            lines = f.readlines()
-
-            for line in lines:
-                data = line.split(';')
-
-                if data[0] == current_scene:
-                    zones_learned = data[1:]
-
     if p_save_thresholds is not None:
         with open(p_save_thresholds, 'a') as f:
             f.write(p_label_thresholds + ';')
 
             for t in estimated_thresholds:
                 f.write(str(t) + ';')
+            f.write('\n')
 
     # 6. display results
-    display_estimated_thresholds(p_scene, estimated_thresholds, human_thresholds, image_indices[-1], zones_learned, p_save)
+    display_estimated_thresholds(scene_name, estimated_thresholds, human_thresholds, image_indices[-1], zones_learned, p_save)
 
 if __name__== "__main__":
     main()

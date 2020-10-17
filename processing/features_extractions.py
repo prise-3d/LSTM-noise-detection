@@ -10,6 +10,11 @@ import cv2
 from ipfml.utils import get_entropy, normalize_arr, normalize_arr_with_range
 from ipfml.processing import transform, compression, segmentation
 
+from skimage import color, restoration
+from numpy.linalg import svd as lin_svd
+from scipy.signal import medfilt2d, wiener, cwt
+import pywt
+import cv2
 
 def _extract_svd(image, params):
     begin, end = tuple(map(int, params.split(',')))
@@ -267,6 +272,69 @@ def _extracts_complexity_stats(image, params):
 
     return list(stats_attributes)
 
+def _filters_statistics(image, params):
+
+    img_width, img_height = 200, 200
+
+    lab_img = transform.get_LAB_L(image)
+    arr = np.array(lab_img)
+
+    # compute all filters statistics
+    def get_stats(arr, I_filter):
+
+        e1       = np.abs(arr - I_filter)
+        L        = np.array(e1)
+        mu0      = np.mean(L)
+        A        = L - mu0
+        H        = A * A
+        E        = np.sum(H) / (img_width * img_height)
+        P        = np.sqrt(E)
+
+        return mu0, P
+        # return np.mean(I_filter), np.std(I_filter)
+
+    stats = []
+
+    kernel = np.ones((3,3),np.float32)/9
+    stats.append(get_stats(arr, cv2.filter2D(arr,-1,kernel)))
+
+    kernel = np.ones((5,5),np.float32)/25
+    stats.append(get_stats(arr, cv2.filter2D(arr,-1,kernel)))
+
+    stats.append(get_stats(arr, cv2.GaussianBlur(arr, (3, 3), 0.5)))
+
+    stats.append(get_stats(arr, cv2.GaussianBlur(arr, (3, 3), 1)))
+
+    stats.append(get_stats(arr, cv2.GaussianBlur(arr, (3, 3), 1.5)))
+
+    stats.append(get_stats(arr, cv2.GaussianBlur(arr, (5, 5), 0.5)))
+
+    stats.append(get_stats(arr, cv2.GaussianBlur(arr, (5, 5), 1)))
+
+    stats.append(get_stats(arr, cv2.GaussianBlur(arr, (5, 5), 1.5)))
+
+    stats.append(get_stats(arr, medfilt2d(arr, [3, 3])))
+
+    stats.append(get_stats(arr, medfilt2d(arr, [5, 5])))
+
+    stats.append(get_stats(arr, wiener(arr, [3, 3])))
+
+    stats.append(get_stats(arr, wiener(arr, [5, 5])))
+
+    wave = w2d(arr, 'db1')
+    stats.append(get_stats(arr, np.array(wave, 'float64')))
+
+    data = []
+
+    for stat in stats:
+        data.append(stat[0])
+
+    for stat in stats:
+        data.append(stat[1])
+    
+    data = np.array(data)
+
+    return list(data)
 
 def extract_data(image, method, params = None):
 
@@ -338,5 +406,57 @@ def extract_data(image, method, params = None):
     if method == 'complexity_stats':
         return _extracts_complexity_stats(image, params)
 
+    if method == 'filters_statistics':
+        return _filters_statistics(image, params)
+
     # no method found
     return None
+
+
+def w2d(arr, mode):
+    # convert to float   
+    imArray = arr
+    # np.divide(imArray, 100) # because of lightness channel, use of 100
+
+    # compute coefficients 
+    # same to: LL (LH, HL, HH)
+    # cA, (cH, cV, cD) = pywt.dwt2(imArray, mode)
+    # cA *= 0 # remove low-low sub-bands data
+
+    # reduce noise from the others cofficients
+    # LH, HL and HH
+    # ----
+    # cannot use specific method to predict thresholds...
+    # use of np.percentile(XX, 5) => remove data under 5 first percentile
+    # cH = pywt.threshold(cH, np.percentile(cH, 5), mode='soft')
+    # cV = pywt.threshold(cV, np.percentile(cV, 5), mode='soft')
+    # cD = pywt.threshold(cD, np.percentile(cD, 5), mode='soft')
+
+    # reconstruction
+    # imArray_H = pywt.idwt2((cA, (cH, cV, cD)), mode)
+    # print(np.min(imArray_H), np.max(imArray_H), np.mean(imArray_H))
+    # imArray_H *= 100 # because of lightness channel, use of 100
+    # imArray_H = np.array(imArray_H)
+
+    # coeffs = pywt.wavedec2(imArray, mode, level=2)
+
+    # #Process Coefficients
+    # coeffs_H=list(coeffs)  
+    # coeffs_H[0] *= 0;  
+
+    # # reconstruction
+    # imArray_H=pywt.waverec2(coeffs_H, mode)
+    # print(np.min(imArray_H), np.max(imArray_H), np.mean(imArray_H))
+
+    # using skimage
+    sigma = restoration.estimate_sigma(imArray, average_sigmas=True, multichannel=False)
+    imArray_H = restoration.denoise_wavelet(imArray, sigma=sigma, wavelet='db1', mode='soft', 
+        wavelet_levels=2, 
+        multichannel=False, 
+        convert2ycbcr=False, 
+        method='VisuShrink', 
+        rescale_sigma=True)
+
+    # imArray_H *= 100
+
+    return imArray_H
