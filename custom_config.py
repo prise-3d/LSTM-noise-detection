@@ -43,7 +43,8 @@ features_choices_labels         = [
                                     'entropy_blocks_permutation',
                                     'entropy_blocks_permutation_norm',
                                     'complexity_stats',
-                                    'filters_statistics'
+                                    'filters_statistics',
+                                    'filters_statistics_norm'
                                 ]
 
 results_filename                = 'results.csv'

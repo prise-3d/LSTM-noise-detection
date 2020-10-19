@@ -336,6 +336,10 @@ def _filters_statistics(image, params):
 
     return list(data)
 
+def _filters_statistics_norm(image, params):
+    return normalize_arr_with_range(_filters_statistics(image, params))
+
+
 def extract_data(image, method, params = None):
 
     if method == 'svd_entropy':
@@ -408,6 +412,9 @@ def extract_data(image, method, params = None):
 
     if method == 'filters_statistics':
         return _filters_statistics(image, params)
+    
+    if method == 'filters_statistics_norm':
+        return _filters_statistics_norm(image, params)
 
     # no method found
     return None
