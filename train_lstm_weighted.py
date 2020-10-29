@@ -69,7 +69,7 @@ def create_model(input_shape):
     model.add(LSTM(input_shape=input_shape, units=512, activation='tanh', recurrent_activation='sigmoid', dropout=0.3, return_sequences=True))
     model.add(LSTM(units=128, activation='tanh', recurrent_activation='sigmoid', dropout=0.3, return_sequences=True))
     model.add(LSTM(units=64, activation='tanh', dropout=0.3, recurrent_activation='sigmoid'))
-    model.add(Dense(1, activation='tanh'))
+    model.add(Dense(1, activation='sigmoid'))
 
     print ('Compiling...')
     model.compile(loss='binary_crossentropy',
