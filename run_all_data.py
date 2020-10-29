@@ -7,21 +7,15 @@ n_epochs = 30
 features_list = ['svd_entropy_blocks', 'filters_statistics']
 
 generated_datasets_folder = "data/datasets/{0}/{1}"
-results_filename = "data/results/results_{0}.csv"
+results_filename = "data/results/results.csv"
 
 already_runned = []
 
-for feature in features_list:
+with open(results_filename, 'r') as f:
+    
+    lines = f.readlines()
 
-    if not os.path.exists(results_filename.format(feature)):
-        os.system('touch {0}'.format(results_filename.format(feature)))
-
-    with open(results_filename.format(feature), 'r') as f:
-        
-        lines = f.readlines()
-
-        if len(lines) == 0:
-            break
+    if len(lines) > 0:
 
         del lines[0] # remove header
 
