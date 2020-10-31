@@ -65,10 +65,9 @@ def create_model(input_shape):
     print ('Creating model...')
     model = Sequential()
     #model.add(Embedding(input_dim = 1000, output_dim = 50, input_length=input_length))
-    # use params for cuDNN optimization
-    model.add(LSTM(input_shape=input_shape, units=512, activation='tanh', recurrent_activation='sigmoid', dropout=0.3, return_sequences=True))
-    model.add(LSTM(units=128, activation='tanh', recurrent_activation='sigmoid', dropout=0.3, return_sequences=True))
-    model.add(LSTM(units=64, activation='tanh', dropout=0.3, recurrent_activation='sigmoid'))
+    model.add(LSTM(input_shape=input_shape, units=512, activation='sigmoid', recurrent_activation='hard_sigmoid', dropout=0.3, return_sequences=True))
+    model.add(LSTM(units=128, activation='sigmoid', recurrent_activation='hard_sigmoid', dropout=0.3, return_sequences=True))
+    model.add(LSTM(units=64, activation='sigmoid', dropout=0.3, recurrent_activation='hard_sigmoid'))
     model.add(Dense(1, activation='sigmoid'))
 
     print ('Compiling...')
