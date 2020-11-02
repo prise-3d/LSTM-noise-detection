@@ -51,6 +51,7 @@ def main():
     parser.add_argument('--params', type=str, help='param of the method used', default="", required=True)
     parser.add_argument('--imnorm', type=int, help="specify if image is normalized before computing something", default=0, choices=[0, 1])
     parser.add_argument('--output', type=str, help='save computed data for each zone of each scene into file', required=True)
+    parser.add_argument('--every', type=int, help='specify if all step images are used or not', default=1)
 
     args = parser.parse_args()
 
@@ -60,6 +61,7 @@ def main():
     p_method     = args.method
     p_params     = args.params
     p_imnorm     = args.imnorm
+    p_every      = args.every
 
     p_output_path = os.path.join(cfg.output_data_generated, p_output)
 
@@ -92,7 +94,9 @@ def main():
 
         scene_path = os.path.join(p_folder, scene)
 
-        images_path[scene] = sorted([os.path.join(scene_path, img) for img in os.listdir(scene_path) if cfg.scene_image_extension in img])
+        images_path[scene] = sorted([os.path.join(scene_path, img) for img in os.listdir(scene_path) if cfg.scene_image_extension in img ])
+        images_path[scene] = sorted([img for i, img in enumerate(images_path[scene]) if i % p_every == 0 ])
+        
         number_of_images = number_of_images + len(images_path[scene])
 
 
@@ -104,6 +108,7 @@ def main():
     for scene in scenes_list:
 
         image_indices = [ dt.get_scene_image_quality(img_path) for img_path in images_path[scene] ]
+        print("Indices for {0} => {1}".format(scene, image_indices))
 
         blocks_entropy = []
 
