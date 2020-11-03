@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import sys, os, argparse
 import random
+import math
 
 # image processing
 from PIL import Image
@@ -21,10 +22,7 @@ zones_indices  = cfg.zones_indices
 
 def save_learned_zones(output_name, scene, zones):
 
-    if not os.path.exists(cfg.output_zones_learned):
-        os.makedirs(cfg.output_zones_learned)
-
-    with open(os.path.join(cfg.output_zones_learned, output_name), 'a') as f:
+    with open(output_name, 'a') as f:
         f.write(scene + ';')
 
         for zone in zones:
@@ -33,9 +31,11 @@ def save_learned_zones(output_name, scene, zones):
         f.write('\n')
 
 
-def get_random_zones(scene, zones, n_zones):
+def get_random_zones(scene, zones, percent):
 
     random.shuffle(zones)
+
+    n_zones = int(math.ceil(len(zones) * percent))
     
     return zones[0:n_zones]
 
@@ -55,8 +55,14 @@ def main():
     p_sequence     = args.sequence
     p_percent      = args.percent
 
+    # take care of well sorted folders (cluster identifier depends on it)
     cluster_data = sorted(os.listdir(p_folder))
     print(cluster_data)
+
+    learned_zones_output = os.path.join(cfg.output_zones_learned, p_output)
+
+    if not os.path.exists(learned_zones_output):
+        os.makedirs(learned_zones_output)
 
     for index_file, c_data in enumerate(cluster_data):
 
@@ -65,7 +71,7 @@ def main():
         # create output path if not exists
         p_output_path = os.path.join(cfg.output_datasets, p_output)
         p_output_path_train = os.path.join(p_output_path, 'cluster_data_{}.train'.format(index_file))
-        p_output_path_test = os.path.join(p_output_path, 'cluster_data_{}.train'.format(index_file))
+        p_output_path_test = os.path.join(p_output_path, 'cluster_data_{}.test'.format(index_file))
 
         if not os.path.exists(p_output_path):
             os.makedirs(p_output_path)
@@ -73,8 +79,6 @@ def main():
         # read line by line file to estimate threshold entropy stopping criteria
         f_train = open(p_output_path_train, 'w')
         f_test = open(p_output_path_test, 'w')
-
-        zones = np.arange(16)
 
         available_zones = {}
 
@@ -95,9 +99,7 @@ def main():
                 if zones_index not in available_zones[scene_name]:
                     available_zones[scene_name].append(zones_index)
 
-        print(available_zones)
-
-
+        # depending of available zones, define the zones to take in training set based on percent
         with open(data_file, 'r') as f:
 
             lines = f.readlines()
@@ -121,70 +123,67 @@ def main():
                 # one element is removed using this function (first element of list for computing first difference)
                 # TODO : remove previous and add new
 
-        #         if current_scene == None:
-        #             new_scene == True
-        #             current_scene = scene_name
+                if current_scene == None:
+                    new_scene == True
+                    current_scene = scene_name
 
-        #             # check if use of selected zones
-        #             if learned_zones:
-        #                 selected_zones = learned_zones[scene_name]
-        #             else:
-        #                 selected_zones = get_random_zones(scene_name, zones, p_n_zones)
+                    zones = available_zones[scene_name]
+                    selected_zones = get_random_zones(scene_name, zones, p_percent)
+                    #print(selected_zones, 'are from', zones)
 
-        #             save_learned_zones(p_output, scene_name, selected_zones)
+                    save_learned_zones(os.path.join(learned_zones_output, 'cluster_data_{}.csv'.format(index_file)), scene_name, selected_zones)
 
-        #         if scene_name != current_scene:
-        #             new_scene = True
-        #             random.shuffle(zones)
+                if scene_name != current_scene:
+                    new_scene = True
                     
-        #             # check if use of selected zones
-        #             if learned_zones:
-        #                 selected_zones = learned_zones[scene_name]
-        #             else:
-        #                 selected_zones = get_random_zones(scene_name, zones, p_n_zones)
+                    zones = available_zones[scene_name]
 
-        #             save_learned_zones(p_output, scene_name, selected_zones)
-        #         else:
-        #             new_scene = False
+                    # check if use of selected zones
+                    selected_zones = get_random_zones(scene_name, zones, p_percent)
+                    #print(selected_zones, 'are from', zones)
 
-        #         current_scene = scene_name
+                    save_learned_zones(os.path.join(learned_zones_output, 'cluster_data_{}.csv'.format(index_file)), scene_name, selected_zones)
+                else:
+                    new_scene = False
 
-        #         for i, index in enumerate(image_indices):
+                current_scene = scene_name
+
+                for i, index in enumerate(image_indices):
                     
-        #             values = values_list[i].split(' ')
+                    values = values_list[i].split(' ')
 
-        #             # append new sequence
-        #             sequence_data.append(values)
+                    # append new sequence
+                    sequence_data.append(values)
 
-        #             if i + 1 >= p_sequence:
+                    if i + 1 >= p_sequence:
 
-        #                 label = int(threshold > int(index))
+                        label = int(threshold > int(index))
 
-        #                 line = str(label) + ';'
+                        line = str(label) + ';'
 
-        #                 for index_v, values in enumerate(sequence_data):
+                        for index_v, values in enumerate(sequence_data):
 
-        #                     for index_x, x in enumerate(values):
-        #                         line += str(x)
+                            for index_x, x in enumerate(values):
+                                line += str(x)
 
-        #                         if index_x + 1 < len(values):
-        #                             line += ' '
+                                if index_x + 1 < len(values):
+                                    line += ' '
 
-        #                     if index_v + 1 < len(sequence_data):
-        #                         line += ';'
+                            if index_v + 1 < len(sequence_data):
+                                line += ';'
 
-        #                 line += '\n'
+                        line += '\n'
 
-        #                 if zones_index in selected_zones:
-        #                     f_train.write(line)
-        #                 else:
-        #                     f_test.write(line)
+                        if zones_index in selected_zones:
+                            f_train.write(line)
+                        else:
+                            f_test.write(line)
 
-        #                 # del previous element
-        #                 del sequence_data[0]
+                        # del previous element
+                        del sequence_data[0]
 
-        # f_test.close()
-        # f_train.close()    
+        f_test.close()
+        f_train.close()    
 
 if __name__== "__main__":
     main()
