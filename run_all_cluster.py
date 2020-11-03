@@ -11,7 +11,6 @@ default_parameters = {
     },
     "cluster": {
         "estimators": ['l_mean', 'sobel', 'l_kolmogorov', 'l_variance'],
-        "model": "data/models/kmeans_model.joblib",
         "nclusters": 4
     },
     "method": {
@@ -26,7 +25,9 @@ default_parameters = {
         "seqnorm": 1
     },
     "output": {
-        "data": "cluster_data",
+        "cluster": "clustering_data",
+        "cluster_model": "clustering_model",
+        "data": "method_cluster_data",
         "datasets": "clusters_datasets",
         "models": "clusters_models",
         "simulations": "clusters_simulation",
@@ -40,12 +41,14 @@ def main():
     parser = argparse.ArgumentParser(description="Run all clusters processing / training / simulation")
 
     parser.add_argument('--json', type=str, help='custom json parameter', default='')
+    parser.add_argument('--cluster', type=int, help='cluster training or not', choices=[0, 1], default=0)
     parser.add_argument('--simulations', type=int, help='simulations after training', choices=[0, 1], default=1)
     parser.add_argument('--only', type=int, help='simulations only', choices=[0, 1], default=0)
 
     args = parser.parse_args()
 
     p_json        = args.json
+    p_cluster     = bool(args.cluster)
     p_simulations = bool(args.simulations)
     p_only        = bool(args.only)
 
@@ -58,7 +61,53 @@ def main():
         parameters = default_parameters
 
     if not p_only:
-        # 1. First step we need to prepare the file data using dataset
+
+        if p_cluster:
+            # 1. Prepare cluseting data
+
+            # Parameter list of `complexity/run/scenes_classification_data.py`:
+            """
+            parser.add_argument('--folder', type=str, help='folder where scenes with png scene file are stored')
+            parser.add_argument('--estimators', type=str, help='list of estimators', default='l_mean,l_variance')
+            parser.add_argument('--output', type=str, help='output data filename', required=True)
+            """
+
+            command_str_cluster_data = "python complexity/run/scenes_classification_data.py --folder {0} --estimators {1} --output {2}"
+
+            command_cluster_data = command_str_cluster_data.format(
+                            parameters['dataset']['scenes'],
+                            ','.join(parameters['cluster']['estimators']),
+                            parameters['output']['cluster']
+            )            
+
+            print('##################################################################################')
+            print('#1. Running data preparation for clustering model')
+            print('##################################################################################')
+            subprocess.call(command_cluster_data, shell=True)
+
+            # 2. Prepare cluseting data
+
+            # Parameter list of `complexity/run/scenes_classification.py`:
+            """
+            parser.add_argument('--data', type=str, help='required data file', required=True)
+            parser.add_argument('--clusters', type=int, help='number of expected clusters', default=2)
+            parser.add_argument('--output', type=str, help='output folder name', required=True)
+            """
+
+            command_str_cluster = "python complexity/run/scenes_classification.py --data data/generated/{0} --clusters {1} --output {2}"
+
+            command_cluster = command_str_cluster.format(
+                            parameters['output']['cluster'],
+                            parameters['cluster']['nclusters'],
+                            parameters['output']['cluster_model']
+            )            
+
+            print('##################################################################################')
+            print('#2. Training clustering model on {0}'.format(parameters['dataset']['scenes']))
+            print('##################################################################################')
+            subprocess.call(command_cluster, shell=True)
+
+        # 3. First step we need to prepare the file data using dataset
 
         # Parameter list of `prepare_data_file_cluster.py` script:
         """
@@ -72,12 +121,12 @@ def main():
         parser.add_argument('--imnorm', type=int, help="specify if image is normalized before computing something", default=0, choices=[0, 1])
         parser.add_argument('--output', type=str, help='output folder name with all clusters files', required=True)
         """
-        command_str_data = "python prepare_data_file_cluster.py --dataset {0} --cluster {1} --nclusters {2} --estimators \"{3}\" --thresholds {4} " \
+        command_str_data = "python prepare_data_file_cluster.py --dataset {0} --cluster data/models/{1}.joblib --nclusters {2} --estimators \"{3}\" --thresholds {4} " \
                         "--method {5} --params \"{6}\" --imnorm 0 --output {7}"
 
         command_data = command_str_data.format(
                             parameters['dataset']['scenes'],
-                            parameters['cluster']['model'],
+                            parameters['output']['cluster_model'],
                             parameters['cluster']['nclusters'],
                             ','.join(parameters['cluster']['estimators']),
                             parameters['dataset']['thresholds'],
@@ -86,12 +135,12 @@ def main():
                             parameters['output']['data']
         )
 
-        print('#########################################')
-        print('#1. Running data preparation')
-        print('#########################################')
+        print('##################################################################################')
+        print('#3. Running data preparation')
+        print('##################################################################################')
         subprocess.call(command_data, shell=True)
 
-        # 2. Prepare dataset from generated data file
+        # 4. Prepare dataset from generated data file
 
         # Parameter list of `prepare_dataset_cluster.py` script:
         """
@@ -110,13 +159,13 @@ def main():
                         parameters['output']['datasets']
         )
 
-        print('#########################################')
-        print('#2. Preparation of datasets')
-        print('#########################################')
+        print('##################################################################################')
+        print('#4. Preparation of datasets')
+        print('##################################################################################')
         subprocess.call(command_datasets, shell=True)
 
 
-        # 3. Training of each datasets
+        # 5. Training of each datasets
 
         # Parameter list of `train_lstm_cluster.py` script:
 
@@ -141,13 +190,13 @@ def main():
                         parameters['output']['models']
         )
         
-        print('#########################################')
-        print('#3. Training each cluster model')
-        print('#########################################')
+        print('##################################################################################')
+        print('#5. Training each cluster model')
+        print('##################################################################################')
         subprocess.call(command_train, shell=True)
 
     if p_simulations:
-        # 4. Prediction using ensemble models
+        # 6. Prediction using ensemble models
 
         # Parameter list of `prediction_scene_cluster.py` script:
 
@@ -167,20 +216,20 @@ def main():
         parser.add_argument('--output', type=str, help='output folder name with predictions', required=True)
         """
 
-        command_str_predict = "python prediction_scene_cluster.py --scene {0} --cluster {1} --nclusters {2} --estimators {3} " \
+        command_str_predict = "python prediction_scene_cluster.py --scene {0} --cluster data/models/{1}.joblib --nclusters {2} --estimators {3} " \
             "--thresholds {4} --method {5} --params {6} --sequence {7} --seq_norm {8} --n_stop 1 " \
             "--models data/saved_models/{9} --imnorm 0 --output {10} --label {11}"
 
         scenes_path = [ os.path.join(parameters['dataset']['scenes'], s) for s in sorted(os.listdir(parameters['dataset']['scenes'])) ]
 
-        print('#########################################')
-        print('#4. Simulation of scenes')
-        print('#########################################')
+        print('##################################################################################')
+        print('#6. Simulation of scenes')
+        print('##################################################################################')
 
         for scene in scenes_path:
             command_predict = command_str_predict.format(
                             scene,
-                            parameters['cluster']['model'],
+                            parameters['output']['cluster_model'],
                             parameters['cluster']['nclusters'],
                             ','.join(parameters['cluster']['estimators']),
                             parameters['dataset']['thresholds'],
