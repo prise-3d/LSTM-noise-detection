@@ -59,10 +59,10 @@ def main():
     cluster_data = sorted(os.listdir(p_folder))
     print(cluster_data)
 
-    learned_zones_output = os.path.join(cfg.output_zones_learned, p_output)
+    if not os.path.exists(cfg.output_zones_learned):
+        os.makedirs(cfg.output_zones_learned)
 
-    if not os.path.exists(learned_zones_output):
-        os.makedirs(learned_zones_output)
+    training_zones = {}
 
     for index_file, c_data in enumerate(cluster_data):
 
@@ -132,7 +132,10 @@ def main():
                     selected_zones = get_random_zones(scene_name, zones, p_percent)
                     #print(selected_zones, 'are from', zones)
 
-                    save_learned_zones(os.path.join(learned_zones_output, 'cluster_data_{}.csv'.format(index_file)), scene_name, selected_zones)
+                    # save selected zone
+                    if scene_name not in training_zones:
+                        training_zones[scene_name] = []
+                    training_zones[scene_name] = list(set(selected_zones + training_zones[scene_name]))
 
                 if scene_name != current_scene:
                     new_scene = True
@@ -141,9 +144,11 @@ def main():
 
                     # check if use of selected zones
                     selected_zones = get_random_zones(scene_name, zones, p_percent)
-                    #print(selected_zones, 'are from', zones)
-
-                    save_learned_zones(os.path.join(learned_zones_output, 'cluster_data_{}.csv'.format(index_file)), scene_name, selected_zones)
+                    
+                    # save selected zone
+                    if scene_name not in training_zones:
+                        training_zones[scene_name] = []
+                    training_zones[scene_name] = list(set(selected_zones + training_zones[scene_name]))
                 else:
                     new_scene = False
 
@@ -185,6 +190,10 @@ def main():
 
         f_test.close()
         f_train.close()    
+
+    # save learned zones
+    for key, value in training_zones.items():
+        save_learned_zones(os.path.join(cfg.output_zones_learned, p_output), key, value)
 
 if __name__== "__main__":
     main()
