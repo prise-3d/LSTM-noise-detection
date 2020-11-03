@@ -34,7 +34,7 @@ p_every  = args.every
 
 for scene in sorted(os.listdir(p_folder)):    
     scene_path = os.path.join(p_folder, scene)
-    str_command = command.format(p_params, p_method, p_model, p_selected_zones, scene_path, p_thresholds, p_seqnorm, p_sequence, p_output, scene, every)
+    str_command = command.format(p_params, p_method, p_model, p_selected_zones, scene_path, p_thresholds, p_seqnorm, p_sequence, p_output, scene, p_every)
 
     print("Run simulation for {0}".format(scene))
     os.system(str_command)
