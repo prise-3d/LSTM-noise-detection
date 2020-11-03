@@ -89,7 +89,7 @@ def main():
         print('#########################################')
         print('#1. Running data preparation')
         print('#########################################')
-        #subprocess.call(command_data, shell=True)
+        subprocess.call(command_data, shell=True)
 
         # 2. Prepare dataset from generated data file
 
