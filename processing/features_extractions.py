@@ -256,7 +256,10 @@ def _extracts_complexity_stats(image, params):
     bytes_data = image.tobytes()
     compress_data = gzip.compress(bytes_data)
 
-    stats_attributes.append(sys.getsizeof(compress_data))
+    mo_size = sys.getsizeof(compress_data) / 1024.
+    go_size = mo_size / 1024.
+
+    stats_attributes.append(go_size)
 
     # 4. extract svd_entropy
     begin, end = tuple(map(int, params.split(',')))

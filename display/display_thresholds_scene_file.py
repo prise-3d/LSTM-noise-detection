@@ -110,7 +110,6 @@ def main():
     parser.add_argument('--save_thresholds', type=str, help='save or not thresholds')
     parser.add_argument('--label_thresholds', type=str, help='thresholds method label')
     parser.add_argument('--seq_norm', type=int, help='normalization sequence by features', choices=[0, 1])
-    parser.add_argument('--every', type=int, help='specify if all step images are used or not', default=1)
 
     args = parser.parse_args()
 
@@ -127,7 +126,6 @@ def main():
     p_save_thresholds = args.save_thresholds
     p_label_thresholds = args.label_thresholds
     p_seq_norm   = bool(args.seq_norm)
-    p_every      = args.every
 
 
     # scene path by default
@@ -175,8 +173,6 @@ def main():
 
     # 4. get estimated thresholds using model and specific method
     images_path = sorted([os.path.join(scene_path, img) for img in os.listdir(scene_path) if cfg.scene_image_extension in img])
-    images_path = sorted([img for i, img in enumerate(images_path) if i % p_every == 0 ])
-
     number_of_images = len(images_path)
     image_indices = [ dt.get_scene_image_quality(img_path) for img_path in images_path ]
 
