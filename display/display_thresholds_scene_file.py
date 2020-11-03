@@ -175,7 +175,7 @@ def main():
 
     # 4. get estimated thresholds using model and specific method
     images_path = sorted([os.path.join(scene_path, img) for img in os.listdir(scene_path) if cfg.scene_image_extension in img])
-    images_path = sorted([ img for i, img in enumerate(images_path) if p_every % i == 0])
+    images_path = sorted([ img for i, img in enumerate(images_path) if i % p_every == 0])
     
     number_of_images = len(images_path)
     image_indices = [ dt.get_scene_image_quality(img_path) for img_path in images_path ]
