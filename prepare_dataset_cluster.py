@@ -122,6 +122,7 @@ def main():
                 sequence_data = []
                 # one element is removed using this function (first element of list for computing first difference)
                 # TODO : remove previous and add new
+                # TODO : update learned zones
 
                 if current_scene == None:
                     new_scene == True

@@ -141,7 +141,6 @@ def main():
 
             # call cluster model
             predicted_label = cluster_model.predict([x])[0]
-            print(predicted_label)
 
             # add label for this specific zone
             clusters_block[scene][id_b] = predicted_label
