@@ -74,7 +74,7 @@ def predict_ensemble(models, data, cluster_id, weight):
         
 def main():
 
-    parser = argparse.ArgumentParser(description="Extract data from image dataset")
+    parser = argparse.ArgumentParser(description="Predict scene thresholds using ensemble model")
 
     parser.add_argument('--scene', type=str, help='folder path with all scenes', required=True)
     parser.add_argument('--cluster', type=str, help='clustering model to use', required=True)
@@ -87,6 +87,7 @@ def main():
     parser.add_argument('--seq_norm', type=int, help='normalization sequence by features', choices=[0, 1])
     parser.add_argument('--n_stop', type=int, help='n elements for stopping criteria', default=1)
     parser.add_argument('--models', type=str, help='folder with all models', required=True)
+    parser.add_argument('--weight', type=float, help='associated weight to cluster model of zone', default=2.5)
     parser.add_argument('--imnorm', type=int, help="specify if image is normalized before computing something", default=0, choices=[0, 1])
     parser.add_argument('--label', type=str, help='output label for each simulation', default='clusters')
     parser.add_argument('--output', type=str, help='output folder name with predictions', required=True)
@@ -105,6 +106,7 @@ def main():
     p_seq_norm   = args.seq_norm
     p_n_stop     = args.n_stop
     p_models     = args.models
+    p_weight     = args.weight
     p_label      = args.label
     p_imnorm     = args.imnorm
 
@@ -227,7 +229,7 @@ def main():
                                     
                     data = np.expand_dims(data, axis=0)
                     
-                    prob = predict_ensemble(models_list, data, clusters_block[index], 2.5)
+                    prob = predict_ensemble(models_list, data, clusters_block[index], p_weight)
                     #print(index, ':', image_indices[img_i], '=>', prob)
 
                     if prob < 0.5:
