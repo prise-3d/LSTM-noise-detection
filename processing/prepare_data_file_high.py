@@ -135,7 +135,7 @@ def main():
                 if img_index == 0:
                     highest_h_svd.append(data.copy())
 
-                norm_data = np.divide(data, highest_h_svd[index])
+                norm_data = list(np.divide(data, highest_h_svd[index]))
 
                 blocks_entropy[index].append(norm_data)
 
