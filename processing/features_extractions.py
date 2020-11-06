@@ -256,7 +256,10 @@ def _extracts_complexity_stats(image, params):
     bytes_data = image.tobytes()
     compress_data = gzip.compress(bytes_data)
 
-    stats_attributes.append(sys.getsizeof(compress_data))
+    mo_size = sys.getsizeof(compress_data) / 1024.
+    go_size = mo_size / 1024.
+
+    stats_attributes.append(go_size)
 
     # 4. extract svd_entropy
     begin, end = tuple(map(int, params.split(',')))
@@ -336,6 +339,10 @@ def _filters_statistics(image, params):
 
     return list(data)
 
+def _filters_statistics_norm(image, params):
+    return normalize_arr_with_range(_filters_statistics(image, params))
+
+
 def extract_data(image, method, params = None):
 
     if method == 'svd_entropy':
@@ -408,6 +415,9 @@ def extract_data(image, method, params = None):
 
     if method == 'filters_statistics':
         return _filters_statistics(image, params)
+    
+    if method == 'filters_statistics_norm':
+        return _filters_statistics_norm(image, params)
 
     # no method found
     return None

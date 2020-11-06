@@ -12,3 +12,4 @@ __pycache__
 
 # simulate models .csv file
 simulate_models*.csv
+p3d_results

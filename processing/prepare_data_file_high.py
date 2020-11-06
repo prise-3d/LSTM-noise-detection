@@ -103,6 +103,10 @@ def main():
         print("Erase", p_output_path, "previous file if exists")
 
     image_counter = 0
+
+    # Here, for each scene we need to store the highest H_SVD and normalize data using it (for each sub blocks of block)
+    # this means here, no data normalization and no seqnorm (normalization already done by assumption)
+
     # compute entropy for each zones of each scene images
     for scene in scenes_list:
 
@@ -114,7 +118,9 @@ def main():
         for zone in zones_list:
             blocks_entropy.append([])
 
-        for img_path in images_path[scene]:
+        highest_h_svd = []
+
+        for img_index, img_path in enumerate(images_path[scene]):
 
             blocks = segmentation.divide_in_blocks(Image.open(img_path), block_size)
 
@@ -124,7 +130,14 @@ def main():
                 if p_imnorm:
                     block = np.array(block) / 255.
 
-                blocks_entropy[index].append(extract_data(block, p_method, p_params))
+                data = extract_data(block, p_method, p_params)
+            
+                if img_index == 0:
+                    highest_h_svd.append(data.copy())
+
+                norm_data = np.divide(data, highest_h_svd[index])
+
+                blocks_entropy[index].append(norm_data)
 
             # write progress bar
             write_progress((image_counter + 1) / number_of_images)
@@ -172,7 +185,6 @@ def main():
                         f.write(',')
                 
                 f.write(';\n')
-
     f.close()
 
 if __name__== "__main__":
