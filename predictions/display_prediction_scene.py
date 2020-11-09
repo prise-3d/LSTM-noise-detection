@@ -48,14 +48,17 @@ def display_simulation_thresholds(scene, zones_predictions, humans, image_indice
     start_index = int(image_indices[1]) - int(image_indices[0])
     step_value = int(image_indices[1]) - int(image_indices[0])
 
-    y_min_lim, y_max_lim = (-1, 2)
+    y_min_lim, y_max_lim = (-0.2, 1.2)
 
     for index, predictions_data in enumerate(zones_predictions):
 
         predictions = []
+        predictions_label = []
 
         for v in predictions_data:
-            predictions.append([0 if float(v) < 0.5 else 1])
+            v = float(v)
+            predictions.append(v)
+            predictions_label.append([0 if v < 0.5 else 1])
 
         # get index of current value
         counter_index = 0
@@ -66,7 +69,8 @@ def display_simulation_thresholds(scene, zones_predictions, humans, image_indice
             current_value += step_value
 
         fig.add_subplot(4, 4, (index + 1))
-        plt.plot(predictions)
+        plt.plot(predictions, lw=2)
+        plt.plot(predictions_label, linestyle='--', color='tab:orange', lw=2)
         #plt.imshow(blocks[index], extent=[0, len(predictions), y_min_lim, y_max_lim])
 
         if zones_learned is not None:
@@ -84,10 +88,13 @@ def display_simulation_thresholds(scene, zones_predictions, humans, image_indice
             plt.xlabel('Samples per pixel', fontsize=20)
 
         x_labels = [id * step_value + start_index for id, val in enumerate(predictions) if id % label_freq == 0]
+        #x_labels = [id * step_value + start_index for id, val in enumerate(predictions) if id % label_freq == 0]
 
         x = [v for v in np.arange(0, len(predictions)) if v % label_freq == 0]
+        y = np.arange(-1, 2, 10)
 
         plt.xticks(x, x_labels, rotation=45)
+        #plt.yticks(y, y)
         plt.ylim(y_min_lim, y_max_lim)
 
     #plt.savefig(os.path.join(folder_path, scene_names[id] + '_simulation_curve.png'))
