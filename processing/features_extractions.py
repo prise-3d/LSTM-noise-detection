@@ -142,6 +142,25 @@ def _extract_svd_entropy_blocks(image, params):
     return entropies
 
 
+def _extract_svd_entropy_blocks_divided(image, params):
+    
+    # params : w_b, w_h, begin_sv, end_sv
+    w_b, w_h, begin, end = tuple(map(int, params.split(',')))
+
+    l_image = transform.get_LAB_L(image)
+    blocks = segmentation.divide_in_blocks(l_image, (w_b, w_h))
+
+    entropies = []
+
+    for b in blocks:
+        sigma = compression.get_SVD_s(b)
+        sigma_size = len(sigma)
+        entropies.append(get_entropy(sigma[0:int(sigma_size/4)]))
+        entropies.append(get_entropy(sigma[int(sigma_size/4):]))
+
+    return entropies
+
+
 def _extract_svd_entropy_blocks_norm(image, params):
 
     return normalize_arr_with_range(_extract_svd_entropy_blocks(image, params))
@@ -386,6 +405,9 @@ def extract_data(image, method, params = None):
 
     if method == 'svd_entropy_blocks':
         return _extract_svd_entropy_blocks(image, params)
+    
+    if method == 'svd_entropy_blocks_divided':
+        return _extract_svd_entropy_blocks_divided(image, params)
     
     if method == 'svd_entropy_blocks_norm':
         return _extract_svd_entropy_blocks_norm(image, params)
