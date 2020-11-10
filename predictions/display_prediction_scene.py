@@ -36,7 +36,7 @@ def write_progress(progress):
     print(output_str)
     sys.stdout.write("\033[F")
 
-def display_simulation_thresholds(scene, zones_predictions, humans, image_indices, zones_learned=None):
+def display_simulation_thresholds(scene, zones_predictions, humans, image_indices, output, every=None, zones_learned=None):
     
     # get reference image
     fig=plt.figure(figsize=(35, 22))
@@ -47,6 +47,9 @@ def display_simulation_thresholds(scene, zones_predictions, humans, image_indice
     # dataset information
     start_index = int(image_indices[1]) - int(image_indices[0])
     step_value = int(image_indices[1]) - int(image_indices[0])
+
+    if every is not None:
+        step_value = every * step_value
 
     y_min_lim, y_max_lim = (-0.2, 1.2)
 
@@ -97,8 +100,8 @@ def display_simulation_thresholds(scene, zones_predictions, humans, image_indice
         #plt.yticks(y, y)
         plt.ylim(y_min_lim, y_max_lim)
 
-    #plt.savefig(os.path.join(folder_path, scene_names[id] + '_simulation_curve.png'))
-    plt.show()
+    plt.savefig(output + '.png')
+    #plt.show()
 
 def main():
 
@@ -108,7 +111,9 @@ def main():
     parser.add_argument('--sequence', type=int, help='sequence length expected')
     parser.add_argument('--thresholds', type=str, help='file which cantains all thresholds')
     parser.add_argument('--learned_zones', type=str, help="Filename which specifies if zones are learned or not and which zones", default="")
+    parser.add_argument('--every', type=int, help="every images only", default=1)
     parser.add_argument('--scene', type=str, help='Scene folder to use')
+    parser.add_argument('--output', type=str, help='output image file name')
 
     args = parser.parse_args()
 
@@ -116,7 +121,9 @@ def main():
     p_sequence = args.sequence
     p_thresholds = args.thresholds
     p_zones    = args.learned_zones
+    p_every    = args.every
     p_scene    = args.scene
+    p_output   = args.output
 
     # 1. get scene name
     scene_path = p_scene
@@ -159,7 +166,7 @@ def main():
 
             predictions = []
             
-            for i in range(p_sequence):
+            for _ in range(p_sequence - 1):
                 predictions.append(1)
 
             for v in data[2:-1]:
@@ -183,7 +190,7 @@ def main():
                     zones_learned = [ int(zone) for zone in zones_selected ]
 
     # 6. display results
-    display_simulation_thresholds(scene_name, zones_predictions, human_thresholds, image_indices, zones_learned)
+    display_simulation_thresholds(scene_name, zones_predictions, human_thresholds, image_indices, p_output, p_every, zones_learned)
 
 if __name__== "__main__":
     main()

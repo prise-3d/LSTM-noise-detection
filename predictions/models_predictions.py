@@ -42,7 +42,7 @@ def main():
 
     for scene in scenes:
         """
-        For each scene run `display/prediction_on_scene.py`
+        For each scene run `predictions/model_prediction_scene.py`
 
         Params:
 
@@ -61,7 +61,7 @@ def main():
         output_name = os.path.join(p_output, scene + ".csv")
 
         print('Prediction for', scene)
-        command_str = "python predictions/prediction_on_scene.py --model {0} --method {1} --params {2} --sequence {3} --scene {4} --seq_norm {5} --every {6} --output {7} --imnorm {8}" \
+        command_str = "python predictions/model_prediction_scene.py --model {0} --method {1} --params {2} --sequence {3} --scene {4} --seq_norm {5} --every {6} --output {7} --imnorm {8}" \
             .format(p_model, p_method, p_params, p_sequence, scene_path, p_seq_norm, p_every, output_name, p_imnorm)
 
         subprocess.call(command_str, shell=True)
