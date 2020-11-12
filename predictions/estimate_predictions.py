@@ -34,9 +34,12 @@ def main():
     p_output   = args.output
 
     folder, filename = os.path.split(p_output)
-
+        
     if len(folder) > 0 and not os.path.exists(folder):
         os.makedirs(folder)
+
+    with open(p_output, 'w') as f:
+        print('Erase previous file of thresholds')
 
     scenes = sorted(os.listdir(p_dataset))
 
@@ -60,7 +63,7 @@ def main():
 
         print('Prediction for', scene)
         command_str = "python predictions/estimate_prediction_scene.py --predictions {0} --sequence {1} --thresholds {2} --every {3} --scene {4} --nstop {5} --prob {6} --output {7}" \
-            .format(os.path.join(p_prediction, scene + '.csv'), p_sequence, p_thresholds, p_every, scene_path, p_nstop, p_prob, filename)
+            .format(os.path.join(p_prediction, scene + '.csv'), p_sequence, p_thresholds, p_every, scene_path, p_nstop, p_prob, p_output)
 
         subprocess.call(command_str, shell=True)
 

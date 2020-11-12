@@ -150,6 +150,10 @@ def main():
             if scene_name == current_scene:
                 human_thresholds = [ int(threshold) for threshold in  thresholds_scene ]
 
+    if len(human_thresholds) == 0:
+        print('Cannot manage this scene, no thresholds available')
+        return
+    
     print(human_thresholds)
     
     images_path = sorted([os.path.join(scene_path, img) for img in os.listdir(scene_path) if cfg.scene_image_extension in img])

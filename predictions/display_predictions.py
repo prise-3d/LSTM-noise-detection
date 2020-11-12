@@ -14,7 +14,7 @@ def main():
     parser = argparse.ArgumentParser(description="Read and process prediction file")
 
     parser.add_argument('--dataset', type=str, help='dataset with all scenes')
-    parser.add_argument('--predictions', type=str, help='prediction file of scene')
+    parser.add_argument('--predictions', type=str, help='all predictions scene files (need to be the scene name + .csv)')
     parser.add_argument('--sequence', type=int, help='sequence length expected')
     parser.add_argument('--thresholds', type=str, help='file which cantains all thresholds')
     parser.add_argument('--learned_zones', type=str, help="Filename which specifies if zones are learned or not and which zones", default="")
@@ -53,10 +53,11 @@ def main():
 
         scene_path = os.path.join(p_dataset, scene)
         output_name = os.path.join(p_output, scene)
+        prediction_scene = os.path.join(p_prediction, scene + '.csv')
 
         print('Prediction for', scene)
         command_str = "python predictions/display_prediction_scene.py --predictions {0} --sequence {1} --thresholds {2} --learned_zones {3} --every {4} --scene {5} --output {6}" \
-            .format(p_prediction, p_sequence, p_thresholds, p_zones, p_every, scene_path, output_name)
+            .format(prediction_scene, p_sequence, p_thresholds, p_zones, p_every, scene_path, output_name)
 
         subprocess.call(command_str, shell=True)
 
