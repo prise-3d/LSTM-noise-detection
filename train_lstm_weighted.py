@@ -159,9 +159,9 @@ def main():
     # train_score, train_acc = model.evaluate(X_train, y_train, batch_size=1)
 
     # print(train_acc)
-    y_train_predict = [ 1 if x > 0.5 else 0 for x in model.predict(X_train) ]
-    y_val_predict = [ 1 if x > 0.5 else 0 for x in model.predict(X_val) ]
-    y_test_predict = [ 1 if x > 0.5 else 0 for x in model.predict(X_test) ]
+    y_train_predict = [ list(x).index(max(x)) for x in model.predict(X_train) ]
+    y_val_predict = [ list(x).index(max(x)) for x in model.predict(X_val) ]
+    y_test_predict = [ list(x).index(max(x)) for x in model.predict(X_test) ]
 
     # print(y_train_predict)
     # print(y_test_predict)
