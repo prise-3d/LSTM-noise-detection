@@ -18,6 +18,25 @@ dataset_folder = cfg.dataset_path
 scenes_list    = cfg.scenes_names
 zones_indices  = cfg.zones_indices
 
+'''
+Display progress information as progress bar
+'''
+def write_progress(progress):
+    barWidth = 180
+
+    output_str = "["
+    pos = barWidth * progress
+    for i in range(barWidth):
+        if i < pos:
+           output_str = output_str + "="
+        elif i == pos:
+           output_str = output_str + ">"
+        else:
+            output_str = output_str + " "
+
+    output_str = output_str + "] " + str(int(progress * 100.0)) + " %\r"
+    print(output_str)
+    sys.stdout.write("\033[F")
 
 def save_learned_zones(output_name, scene, zones):
 
@@ -99,6 +118,9 @@ def main():
     with open(p_data, 'r') as f:
         lines = f.readlines()
 
+        nlines = len(lines)
+        ncounter = 0
+
         new_scene = False
         current_scene = None
         selected_zones = None
@@ -167,7 +189,7 @@ def main():
                     # do seq normalisation here if necessary
                     if p_seq_norm:
                         
-                        data = np.array(sequence_data)
+                        data = np.array(sequence_data, 'float32')
                         _, f = data.shape
                         for i in range(f):
                             #final_arr[index][]
@@ -195,6 +217,9 @@ def main():
 
                     # del previous element
                     del sequence_data[0]
+
+            ncounter += 1
+            write_progress(float(ncounter / nlines))
 
     f_test.close()
     f_train.close()    
