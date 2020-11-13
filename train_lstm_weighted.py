@@ -22,12 +22,11 @@ from sklearn.model_selection import train_test_split
 import custom_config as cfg
 
 
-def build_input(df, seq_norm):
+def build_input(df):
     """Convert dataframe to numpy array input with timesteps as float array
     
     Arguments:
         df: {pd.Dataframe} -- Dataframe input
-        seq_norm: {bool} -- normalize or not seq input data by features
     
     Returns:
         {np.ndarray} -- input LSTM data as numpy array
@@ -45,19 +44,7 @@ def build_input(df, seq_norm):
         
         final_arr.append(v_data)
     
-    final_arr = np.array(final_arr, 'float32')
-
-    # check if sequence normalization is used
-    if seq_norm:
-
-        if final_arr.ndim > 2:
-            n, s, f = final_arr.shape
-            for index, seq in enumerate(final_arr):
-                
-                for i in range(f):
-                    final_arr[index][:, i] = utils.normalize_arr_with_range(seq[:, i])
-
-            
+    final_arr = np.array(final_arr, 'float32')            
 
     return final_arr
 
@@ -87,8 +74,6 @@ def main():
     parser.add_argument('--output', type=str, help='output model name')
     parser.add_argument('--epochs', type=int, help='number of expected epochs', default=30)
     parser.add_argument('--batch_size', type=int, help='expected batch size for training model', default=64)
-    parser.add_argument('--seq_norm', type=int, help='normalization sequence by features', choices=[0, 1])
-    # parser.add_argument('--n_cores', type=int, help='specify expected number of core to use', default=8)
 
     args = parser.parse_args()
 
@@ -97,32 +82,19 @@ def main():
     p_output       = args.output
     p_epochs       = args.epochs
     p_batch_size   = args.batch_size
-    p_seq_norm     = bool(args.seq_norm)
-    # p_cores        = args.n_cores
-
-    # set number of cores
-    # mkl_rt = ctypes.CDLL('libmkl_rt.so')
-    # mkl_get_max_threads = mkl_rt.mkl_get_max_threads
-    # def mkl_set_num_threads(cores):
-    #     mkl_rt.mkl_set_num_threads(ctypes.byref(ctypes.c_int(cores)))
-
-    # if p_cores > int(mkl_get_max_threads()):
-    #     p_cores = int(mkl_get_max_threads())
-
-    # print('Number of cores used:', p_cores)    
-    # mkl_set_num_threads(p_cores)
 
     dataset_train = pd.read_csv(p_train, header=None, sep=';')
     dataset_test = pd.read_csv(p_test, header=None, sep=';')
 
     # getting weighted class over the whole dataset
-    noisy_df_train = dataset_train[dataset_train.iloc[:, 0] == 1]
-    not_noisy_df_train = dataset_train[dataset_train.iloc[:, 0] == 0]
+    # line is composed of :: [scene_name; zone_id; image_index_end; label; data]
+    noisy_df_train = dataset_train[dataset_train.iloc[:, 3] == 1]
+    not_noisy_df_train = dataset_train[dataset_train.iloc[:, 3] == 0]
     nb_noisy_train = len(noisy_df_train.index)
     nb_not_noisy_train = len(not_noisy_df_train.index)
 
-    noisy_df_test = dataset_test[dataset_test.iloc[:, 0] == 1]
-    not_noisy_df_test = dataset_test[dataset_test.iloc[:, 0] == 0]
+    noisy_df_test = dataset_test[dataset_test.iloc[:, 3] == 1]
+    not_noisy_df_test = dataset_test[dataset_test.iloc[:, 3] == 0]
     nb_noisy_test = len(noisy_df_test.index)
     nb_not_noisy_test = len(not_noisy_df_test.index)
 
@@ -145,13 +117,13 @@ def main():
     final_df_test = sklearn.utils.shuffle(dataset_test)
 
     # split dataset into X_train, y_train, X_test, y_test
-    X_train_all = final_df_train.loc[:, 1:].apply(lambda x: x.astype(str).str.split(' '))
-    X_train_all = build_input(X_train_all, p_seq_norm)
-    y_train_all = final_df_train.loc[:, 0].astype('int')
+    X_train_all = final_df_train.loc[:, 4:].apply(lambda x: x.astype(str).str.split(' '))
+    X_train_all = build_input(X_train_all)
+    y_train_all = final_df_train.loc[:, 3].astype('int')
 
-    X_test = final_df_test.loc[:, 1:].apply(lambda x: x.astype(str).str.split(' '))
-    X_test = build_input(X_test, p_seq_norm)
-    y_test = final_df_test.loc[:, 0].astype('int')
+    X_test = final_df_test.loc[:, 4:].apply(lambda x: x.astype(str).str.split(' '))
+    X_test = build_input(X_test)
+    y_test = final_df_test.loc[:, 3].astype('int')
 
     input_shape = (X_train_all.shape[1], X_train_all.shape[2])
     print('Training data input shape', input_shape)

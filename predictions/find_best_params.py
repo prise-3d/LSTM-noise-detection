@@ -168,13 +168,13 @@ def main():
                     measured_error = sum([ abs(p - scene_thresholds[i]) for i, p in enumerate(predicted_thresholds) ])
 
                 # using custom error
-                # measured_error = 0
+                measured_error = 0
 
-                # for i, p in enumerate(predicted_thresholds):
-                #     if p - scene_thresholds[i] < 0:
-                #         measured_error += abs(p - scene_thresholds[i]) * 3
-                #     else:
-                #         measured_error += abs(p - scene_thresholds[i])
+                for i, p in enumerate(predicted_thresholds):
+                    if p - scene_thresholds[i] < 0:
+                        measured_error += abs(p - scene_thresholds[i]) * 3
+                    else:
+                        measured_error += abs(p - scene_thresholds[i])
                 
                 sum_error += measured_error
 
