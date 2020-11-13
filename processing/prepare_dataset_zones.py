@@ -186,18 +186,20 @@ def main():
                     line += str(index) + ';'
                     line += str(label) + ';'
 
+                    current_sequence_data = sequence_data.copy()
+
                     # do seq normalisation here if necessary
                     if p_seq_norm:
                         
-                        data = np.array(sequence_data, 'float32')
+                        data = np.array(current_sequence_data, 'float32')
                         _, f = data.shape
                         for i in range(f):
                             #final_arr[index][]
                             data[:, i] = utils.normalize_arr_with_range(data[:, i])
 
-                        sequence_data = data.tolist()
-
-                    for index_v, values in enumerate(sequence_data):
+                        current_sequence_data = data.tolist()
+                    
+                    for index_v, values in enumerate(current_sequence_data):
 
                         for index_x, x in enumerate(values):
                             line += str(x)
@@ -205,7 +207,7 @@ def main():
                             if index_x + 1 < len(values):
                                 line += ' '
 
-                        if index_v + 1 < len(sequence_data):
+                        if index_v + 1 < len(current_sequence_data):
                             line += ';'
 
                     line += '\n'
