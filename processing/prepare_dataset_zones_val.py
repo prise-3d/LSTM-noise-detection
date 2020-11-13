@@ -54,6 +54,7 @@ def main():
     parser.add_argument('--n_zones', type=int, help='number of zones used in train', default=0)
     parser.add_argument('--selected_zones', type=str, help='file with specific training zone')
     parser.add_argument('--zones_val', type=int, help='number of zones for separated validation file', default=3)
+    parser.add_argument('--seq_norm', type=int, help='normalization sequence by features', choices=[0, 1])
 
     args = parser.parse_args()
 
@@ -63,6 +64,7 @@ def main():
     p_n_zones      = args.n_zones
     p_selected_zones = args.selected_zones
     p_zones_val    = args.zones_val
+    p_seq_norm     = bool(args.seq_norm)
 
     learned_zones = None
 
@@ -162,9 +164,25 @@ def main():
 
                     label = int(threshold > int(index))
 
-                    line = str(label) + ';'
+                    line = scene_name + ';'
+                    line += str(zones_index) + ';'
+                    line += str(index) + ';'
+                    line += str(label) + ';'
 
-                    for index_v, values in enumerate(sequence_data):
+                    current_sequence_data = sequence_data.copy()
+
+                    # do seq normalisation here if necessary
+                    if p_seq_norm:
+                        
+                        data = np.array(current_sequence_data, 'float32')
+                        _, f = data.shape
+                        for i in range(f):
+                            #final_arr[index][]
+                            data[:, i] = utils.normalize_arr_with_range(data[:, i])
+
+                        current_sequence_data = data.tolist()
+                    
+                    for index_v, values in enumerate(current_sequence_data):
 
                         for index_x, x in enumerate(values):
                             line += str(x)
@@ -172,7 +190,7 @@ def main():
                             if index_x + 1 < len(values):
                                 line += ' '
 
-                        if index_v + 1 < len(sequence_data):
+                        if index_v + 1 < len(current_sequence_data):
                             line += ';'
 
                     line += '\n'

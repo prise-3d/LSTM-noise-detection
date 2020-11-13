@@ -18,6 +18,25 @@ dataset_folder = cfg.dataset_path
 scenes_list    = cfg.scenes_names
 zones_indices  = cfg.zones_indices
 
+'''
+Display progress information as progress bar
+'''
+def write_progress(progress):
+    barWidth = 180
+
+    output_str = "["
+    pos = barWidth * progress
+    for i in range(barWidth):
+        if i < pos:
+           output_str = output_str + "="
+        elif i == pos:
+           output_str = output_str + ">"
+        else:
+            output_str = output_str + " "
+
+    output_str = output_str + "] " + str(int(progress * 100.0)) + " %\r"
+    print(output_str)
+    sys.stdout.write("\033[F")
 
 def save_learned_zones(output_name, scene, zones):
 
@@ -53,6 +72,7 @@ def main():
     parser.add_argument('--sequence', type=int, help='sequence length expected')
     parser.add_argument('--n_zones', type=int, help='number of zones used in train', default=0)
     parser.add_argument('--selected_zones', type=str, help='file with specific training zone')
+    parser.add_argument('--seq_norm', type=int, help='normalization sequence by features', choices=[0, 1])
 
     args = parser.parse_args()
 
@@ -61,6 +81,7 @@ def main():
     p_sequence     = args.sequence
     p_n_zones      = args.n_zones
     p_selected_zones = args.selected_zones
+    p_seq_norm     = bool(args.seq_norm)
 
     learned_zones = None
 
@@ -96,6 +117,9 @@ def main():
 
     with open(p_data, 'r') as f:
         lines = f.readlines()
+
+        nlines = len(lines)
+        ncounter = 0
 
         new_scene = False
         current_scene = None
@@ -151,13 +175,31 @@ def main():
                 # append new sequence
                 sequence_data.append(values)
 
+                # save additionnals information
+                # scene_name; zone_id; image_index_end; label; data
                 if i + 1 >= p_sequence:
 
                     label = int(threshold > int(index))
 
-                    line = str(label) + ';'
+                    line = scene_name + ';'
+                    line += str(zones_index) + ';'
+                    line += str(index) + ';'
+                    line += str(label) + ';'
 
-                    for index_v, values in enumerate(sequence_data):
+                    current_sequence_data = sequence_data.copy()
+
+                    # do seq normalisation here if necessary
+                    if p_seq_norm:
+                        
+                        data = np.array(current_sequence_data, 'float32')
+                        _, f = data.shape
+                        for i in range(f):
+                            #final_arr[index][]
+                            data[:, i] = utils.normalize_arr_with_range(data[:, i])
+
+                        current_sequence_data = data.tolist()
+                    
+                    for index_v, values in enumerate(current_sequence_data):
 
                         for index_x, x in enumerate(values):
                             line += str(x)
@@ -165,7 +207,7 @@ def main():
                             if index_x + 1 < len(values):
                                 line += ' '
 
-                        if index_v + 1 < len(sequence_data):
+                        if index_v + 1 < len(current_sequence_data):
                             line += ';'
 
                     line += '\n'
@@ -177,6 +219,9 @@ def main():
 
                     # del previous element
                     del sequence_data[0]
+
+            ncounter += 1
+            write_progress(float(ncounter / nlines))
 
     f_test.close()
     f_train.close()    
