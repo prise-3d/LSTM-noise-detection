@@ -13,9 +13,9 @@ from ipfml import utils
 from keras.layers import Dense, Dropout, LSTM, Embedding, GRU, BatchNormalization
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import Sequential
+import keras
 from sklearn.metrics import roc_auc_score, accuracy_score
 import tensorflow as tf
-from keras import backend as K
 import sklearn
 from sklearn.model_selection import train_test_split
 
@@ -48,10 +48,10 @@ def build_input(df):
 
     return final_arr
 
-def build_label(index):
-    labels = np.zeros(3)
-    labels[index] = 1
-    return labels
+# def build_label(index):
+#     labels = np.zeros(3)
+#     labels[index] = 1
+#     return np.asarray(labels).astype(np.float32)
 
 def create_model(input_shape):
     print ('Creating model...')
@@ -132,11 +132,13 @@ def main():
     # split dataset into X_train, y_train, X_test, y_test
     X_train_all = final_df_train.loc[:, 4:].apply(lambda x: x.astype(str).str.split(' '))
     X_train_all = build_input(X_train_all)
-    y_train_all = final_df_train.loc[:, 3].apply(lambda x: build_label(x.astype(int)))
+    #y_train_all = final_df_train.loc[:, 3].apply(lambda x: build_label(x))
+    y_train_all = tf.keras.utils.to_categorical(final_df_train.loc[:, 3], num_classes=3)
 
     X_test = final_df_test.loc[:, 4:].apply(lambda x: x.astype(str).str.split(' '))
     X_test = build_input(X_test)
-    y_test = final_df_test.loc[:, 3].apply(lambda x: build_label(x.astype(int)))
+    #y_test = final_df_test.loc[:, 3].apply(lambda x: build_label(x))
+    y_test = tf.keras.utils.to_categorical(final_df_test.loc[:, 3], num_classes=3)
 
     input_shape = (X_train_all.shape[1], X_train_all.shape[2])
     print('Training data input shape', input_shape)
