@@ -48,10 +48,19 @@ def build_input(df):
 
     return final_arr
 
-# def build_label(index):
-#     labels = np.zeros(3)
-#     labels[index] = 1
-#     return np.asarray(labels).astype(np.float32)
+def build_label(x):
+    index = list(x).index(max(x))
+
+    output = []
+
+    for i in range(len(x)):
+        if index == i:
+            output.append(1)
+        else:
+            output.append(0)
+
+    return output
+
 
 def create_model(input_shape):
     print ('Creating model...')
@@ -173,9 +182,10 @@ def main():
     # train_score, train_acc = model.evaluate(X_train, y_train, batch_size=1)
 
     # print(train_acc)
-    y_train_predict = [ list(x).index(max(x)) for x in model.predict(X_train) ]
-    y_val_predict = [ list(x).index(max(x)) for x in model.predict(X_val) ]
-    y_test_predict = [ list(x).index(max(x)) for x in model.predict(X_test) ]
+    # TODO: improve this part
+    y_train_predict = [ build_label(x) for x in model.predict(X_train) ]
+    y_val_predict = [ build_label(x) for x in model.predict(X_val) ]
+    y_test_predict = [ build_label(x) for x in model.predict(X_test) ]
 
     # print(y_train_predict)
     # print(y_test_predict)
