@@ -72,7 +72,7 @@ def create_model(input_shape):
     model.add(Dense(1, activation='softmax'))
 
     print ('Compiling...')
-    model.compile(loss='categorical_crossentropy',
+    model.compile(loss='binary_crossentropy',
                   optimizer='rmsprop',
                   #metrics=['accuracy', tf.keras.metrics.AUC()])
                   metrics=['accuracy'])
@@ -139,14 +139,16 @@ def main():
     final_df_test = sklearn.utils.shuffle(dataset_test)
 
     # split dataset into X_train, y_train, X_test, y_test
-    X_train_all = final_df_train[dataset_test.iloc[:, 3] != 2].loc[:, 4:].apply(lambda x: x.astype(str).str.split(' '))
+    filtered_df_train = final_df_train[dataset_test.iloc[:, 3] != 2]
+    X_train_all = filtered_df_train.loc[:, 4:].apply(lambda x: x.astype(str).str.split(' '))
     X_train_all = build_input(X_train_all)
-    y_train_all = final_df_train[dataset_test.iloc[:, 3] != 2].loc[:, 3].astype('int')
+    y_train_all = filtered_df_train.loc[:, 3].astype('int')
     #y_train_all = tf.keras.utils.to_categorical(final_df_train.loc[:, 3], num_classes=3)
 
-    X_test = final_df_test[dataset_test.iloc[:, 3] != 2].loc[:, 4:].apply(lambda x: x.astype(str).str.split(' '))
+    filtered_df_test = final_df_test[dataset_test.iloc[:, 3] != 2]
+    X_test = filtered_df_test.loc[:, 4:].apply(lambda x: x.astype(str).str.split(' '))
     X_test = build_input(X_test)
-    y_test = final_df_test[dataset_test.iloc[:, 3] != 2].loc[:, 3].astype('int')
+    y_test = filtered_df_test.loc[:, 3].astype('int')
     #y_test = tf.keras.utils.to_categorical(final_df_test.loc[:, 3], num_classes=3)
 
     input_shape = (X_train_all.shape[1], X_train_all.shape[2])
