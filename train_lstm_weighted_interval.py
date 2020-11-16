@@ -66,9 +66,9 @@ def create_model(input_shape):
     print ('Creating model...')
     model = Sequential()
     #model.add(Embedding(input_dim = 1000, output_dim = 50, input_length=input_length))
-    model.add(LSTM(input_shape=input_shape, units=512, activation='sigmoid', recurrent_activation='hard_sigmoid', dropout=0.3, return_sequences=True))
-    model.add(LSTM(units=128, activation='sigmoid', recurrent_activation='hard_sigmoid', dropout=0.3, return_sequences=True))
-    model.add(LSTM(units=64, activation='sigmoid', dropout=0.3, recurrent_activation='hard_sigmoid'))
+    model.add(LSTM(input_shape=input_shape, units=128, activation='tanh', recurrent_activation='sigmoid', dropout=0.4, return_sequences=True))
+    model.add(LSTM(units=32, activation='tanh', recurrent_activation='sigmoid', dropout=0.4, return_sequences=True))
+    model.add(LSTM(units=8, activation='tanh', dropout=0.4, recurrent_activation='sigmoid'))
     model.add(Dense(3, activation='softmax'))
 
     print ('Compiling...')
@@ -207,7 +207,9 @@ def main():
 
     from sklearn.metrics import confusion_matrix
 
-    output_matrix = confusion_matrix(y_test, y_test_predict, labels=["not noisy", "noisy", "interval"])
+    y_test_predict_matrix = [ list(x).index(max(x)) for x in y_test_predict ]
+    y_test_matrix = [ list(x).index(max(x)) for x in y_test ]
+    output_matrix = confusion_matrix(y_test_matrix, y_test_predict_matrix, labels=["not noisy", "noisy", "interval"])
     print(output_matrix)
 
     # save model using h5
