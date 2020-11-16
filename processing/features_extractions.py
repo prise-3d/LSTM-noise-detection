@@ -160,7 +160,7 @@ def _extract_svd_entropy_blocks_disordered(image, params):
     indices = [] 
     index = 0 
 
-    m_size = w_b
+    m_size = int(math.sqrt(len(entropies)))
 
     # compute b matrix in order to reorder elements using dot product
     b = np.arange(m_size * m_size).reshape(m_size, m_size)
