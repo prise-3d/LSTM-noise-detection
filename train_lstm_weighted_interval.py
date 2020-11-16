@@ -205,6 +205,11 @@ def main():
     print('Test ACC:', acc_test)
     print('Test AUC:', auc_test)
 
+    from sklearn.metrics import confusion_matrix
+
+    output_matrix = confusion_matrix(y_test, y_test_predict, labels=["not noisy", "noisy", "interval"])
+    print(output_matrix)
+
     # save model using h5
     if not os.path.exists(cfg.output_models):
         os.makedirs(cfg.output_models)

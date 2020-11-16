@@ -50,6 +50,9 @@ def display_simulation_thresholds(scene, zones_predictions, humans, image_indice
 
     if every is not None:
         step_value = every * step_value
+    
+    if every == 1:
+        label_freq = 2 * label_freq
 
     y_min_lim, y_max_lim = (-0.2, 1.2)
 

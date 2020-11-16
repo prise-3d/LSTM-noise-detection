@@ -139,13 +139,13 @@ def main():
     final_df_test = sklearn.utils.shuffle(dataset_test)
 
     # split dataset into X_train, y_train, X_test, y_test
-    filtered_df_train = final_df_train[dataset_test.iloc[:, 3] != 2]
+    filtered_df_train = final_df_train[final_df_train.iloc[:, 3] != 2]
     X_train_all = filtered_df_train.loc[:, 4:].apply(lambda x: x.astype(str).str.split(' '))
     X_train_all = build_input(X_train_all)
     y_train_all = filtered_df_train.loc[:, 3].astype('int')
     #y_train_all = tf.keras.utils.to_categorical(final_df_train.loc[:, 3], num_classes=3)
 
-    filtered_df_test = final_df_test[dataset_test.iloc[:, 3] != 2]
+    filtered_df_test = final_df_test[final_df_test.iloc[:, 3] != 2]
     X_test = filtered_df_test.loc[:, 4:].apply(lambda x: x.astype(str).str.split(' '))
     X_test = build_input(X_test)
     y_test = filtered_df_test.loc[:, 3].astype('int')
