@@ -1,5 +1,6 @@
 # main imports
 import numpy as np
+import math
 from math import log10
 import gzip
 import sys
@@ -140,6 +141,48 @@ def _extract_svd_entropy_blocks(image, params):
         entropies.append(get_entropy(sigma[begin:end]))
 
     return entropies
+
+def _extract_svd_entropy_blocks_disordered(image, params):
+    
+    # params : w_b, w_h, begin_sv, end_sv
+    w_b, w_h, begin, end = tuple(map(int, params.split(',')))
+
+    l_image = transform.get_LAB_L(image)
+    blocks = segmentation.divide_in_blocks(l_image, (w_b, w_h))
+
+    entropies = []
+
+    for b in blocks:
+        sigma = compression.get_SVD_s(b)
+        entropies.append(get_entropy(sigma[begin:end]))
+
+    # change order of entropies
+    indices = [] 
+    index = 0 
+
+    m_size = w_b
+
+    # compute b matrix in order to reorder elements using dot product
+    b = np.arange(m_size * m_size).reshape(m_size, m_size)
+    entropies = np.array(entropies).reshape(m_size, m_size)
+    step_val = 3 # by default
+
+    # set automatically indices of b matrix
+    for i in range(m_size): 
+        indices.append(index % m_size) 
+        index += step_val
+
+    for i in range(m_size): 
+        b[i][indices[i]] = 1 
+
+    # change order of entropies matrix
+    entropies = np.linalg.multi_dot([entropies, b])
+
+    for i in range(m_size):
+        if i % index == 1:
+            entropies[i] = np.concatenate((entropies[i][1:], entropies[i][:1]))
+
+    return list(entropies.flatten())
 
 
 def _extract_svd_entropy_blocks_divided(image, params):
@@ -406,6 +449,9 @@ def extract_data(image, method, params = None):
     if method == 'svd_entropy_blocks':
         return _extract_svd_entropy_blocks(image, params)
     
+    if method == 'svd_entropy_blocks_disordered':
+        return _extract_svd_entropy_blocks_disordered(image, params)
+
     if method == 'svd_entropy_blocks_divided':
         return _extract_svd_entropy_blocks_divided(image, params)
     
