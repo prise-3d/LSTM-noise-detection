@@ -178,8 +178,9 @@ def _extract_svd_entropy_blocks_disordered(image, params):
     # change order of entropies matrix
     entropies = np.linalg.multi_dot([entropies, b])
 
+    # shift odd rows
     for i in range(m_size):
-        if i % index == 1:
+        if i % 2 == 1:
             entropies[i] = np.concatenate((entropies[i][1:], entropies[i][:1]))
 
     return list(entropies.flatten())
