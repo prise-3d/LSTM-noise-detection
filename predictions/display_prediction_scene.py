@@ -93,10 +93,10 @@ def display_simulation_thresholds(scene, zones_predictions, humans, image_indice
         if index >= 12:
             plt.xlabel('Samples per pixel', fontsize=20)
 
-        x_labels = [id * step_value + start_index for id, val in enumerate(predictions) if id % label_freq == 0]
+        x_labels = [id * step_value + start_index for id, val in enumerate(predictions) if id % label_freq == 0]  + [10000]
         #x_labels = [id * step_value + start_index for id, val in enumerate(predictions) if id % label_freq == 0]
 
-        x = [v for v in np.arange(0, len(predictions)) if v % label_freq == 0]
+        x = [v for v in np.arange(0, len(predictions)) if v % label_freq == 0] + [int(10000 / (20 * every))]
         y = np.arange(-1, 2, 10)
 
         plt.xticks(x, x_labels, rotation=45)
@@ -104,7 +104,7 @@ def display_simulation_thresholds(scene, zones_predictions, humans, image_indice
         plt.ylim(y_min_lim, y_max_lim)
 
     plt.savefig(output + '.png')
-    #plt.show()
+    #plt.show()()
 
 def main():
 
