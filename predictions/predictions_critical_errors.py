@@ -252,17 +252,20 @@ def main():
 
             cell_str = ' & {0:.2f}'
 
-            if percent_error < 3:
-                cell_str = ' & \\cellcolor{{green!55}}{0:.2f}'
-            
-            if percent_error < 5:
-                cell_str = ' & \\cellcolor{{green!25}}{0:.2f}'
-
             if percent_error < 10:
                 cell_str = ' & \\cellcolor{{green!10}}{0:.2f}'
-            
+
+            if percent_error < 8:
+                cell_str = ' & \\cellcolor{{green!35}}{0:.2f}'
+
+            if percent_error < 5:
+                cell_str = ' & \\cellcolor{{green!55}}{0:.2f}'
+
+            if percent_error > 12:
+                cell_str = ' & \\cellcolor{{red!10}}{0:.2f}'
+
             if percent_error > 15:
-                cell_str = ' & \\cellcolor{{red!25}}{0:.2f}'
+                cell_str = ' & \\cellcolor{{red!35}}{0:.2f}'
 
             if percent_error > 20:
                 cell_str = ' & \\cellcolor{{red!55}}{0:.2f}'
@@ -280,17 +283,20 @@ def main():
 
         cell_str = ' & {0:.2f}'
 
-        if percent_error < 3:
-            cell_str = ' & \\cellcolor{{green!55}}{0:.2f}'
-        
-        if percent_error < 5:
-            cell_str = ' & \\cellcolor{{green!25}}{0:.2f}'
-        
         if percent_error < 10:
             cell_str = ' & \\cellcolor{{green!10}}{0:.2f}'
 
+        if percent_error < 8:
+            cell_str = ' & \\cellcolor{{green!35}}{0:.2f}'
+
+        if percent_error < 5:
+            cell_str = ' & \\cellcolor{{green!55}}{0:.2f}'
+
+        if percent_error > 12:
+            cell_str = ' & \\cellcolor{{red!10}}{0:.2f}'
+
         if percent_error > 15:
-            cell_str = ' & \\cellcolor{{red!25}}{0:.2f}'
+            cell_str = ' & \\cellcolor{{red!35}}{0:.2f}'
 
         if percent_error > 20:
             cell_str = ' & \\cellcolor{{red!55}}{0:.2f}'
