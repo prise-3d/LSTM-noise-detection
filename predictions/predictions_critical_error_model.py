@@ -36,7 +36,7 @@ def write_progress(progress):
     print(output_str)
     sys.stdout.write("\033[F")
 
-def display_simulation_thresholds(scene, zones_predictions, humans, image_indices, output, critical_error, every, zones_learned, margin):
+def display_simulation_thresholds(scene, zones_predictions, humans, image_indices, output, critical_error, every, zones_learned, margin, thresholds_indices):
     
     # get reference image
     fig=plt.figure(figsize=(35, 22))
@@ -105,6 +105,10 @@ def display_simulation_thresholds(scene, zones_predictions, humans, image_indice
         # draw vertical line from (70,100) to (70, 250)
         plt.plot([counter_index, counter_index], [-2, 2], 'k-', lw=2, color='red')
 
+        current_thresholds_index = int(thresholds_indices[index] / every)
+        
+        plt.plot([current_thresholds_index, current_thresholds_index], [-2, 2], 'k-', lw=4, color='dimgray')
+
         #plt.axhspan(i, i+.2, facecolor='0.2', alpha=0.5)
         plt.axvspan(min_counter_index, max_counter_index, facecolor='r', alpha=0.4)
 
@@ -115,6 +119,15 @@ def display_simulation_thresholds(scene, zones_predictions, humans, image_indice
                 plt.axvspan(i, i + 1, facecolor='orange', alpha=0.2)
             else:
                 plt.axvspan(i, i + 1, facecolor='g', alpha=0.2)
+
+        # for i in range(len(critical_error[index])):
+
+        #     current_threshold_index = thresholds_indices[index]
+
+        #     if current_threshold_index < i:
+        #         plt.axvspan(i, i + 1, facecolor='orange', alpha=0.2)
+        #     else:
+        #         plt.axvspan(i, i + 1, facecolor='g', alpha=0.2)
 
         if index % 4 == 0:
             plt.ylabel('Not noisy / Noisy', fontsize=20)
@@ -141,6 +154,7 @@ def main():
 
     parser.add_argument('--data', type=str, help='data predictions')
     parser.add_argument('--dataset', type=str, help='scenes dataset folder')
+    parser.add_argument('--nstop', type=int, help='number of expected correct stopping criteria', required=True)
     parser.add_argument('--sequence', type=int, help='sequence length expected')
     parser.add_argument('--thresholds', type=str, help='file which cantains all thresholds')
     parser.add_argument('--learned_zones', type=str, help="Filename which specifies if zones are learned or not and which zones", default="")
@@ -152,6 +166,7 @@ def main():
 
     p_data     = args.data
     p_dataset  = args.dataset
+    p_nstop    = args.nstop
     p_sequence = args.sequence
     p_thresholds = args.thresholds
     p_zones    = args.learned_zones
@@ -238,7 +253,13 @@ def main():
 
             scene_critical_predictions[scene_name] = []
 
+            counter_zones_predictions = []
+            zones_stopping_indices = []
+
             for i in range(len(zones_predictions)):
+
+                counter_zones_predictions.append(0)
+                zones_stopping_indices.append(None)
 
                 critical_predictions = []
 
@@ -257,15 +278,39 @@ def main():
                 for j in range(len(image_indices)):
 
                     if j % p_every == 0:
+                        pred_label = 0 if float(zones_predictions[i][pred_index]) < 0.5 else 1
+
+                        if pred_label == 0:
+
+                            counter_zones_predictions[i] += 1
+
+                            # keeping in memory the current `j` which is the index used for detected image
+                            if zones_stopping_indices[i] is None and counter_zones_predictions[i] >= p_nstop:
+                                zones_stopping_indices[i] = j
+                        else:
+                            counter_zones_predictions[i] = 0
+
+                        pred_index += 1
+
+                if zones_stopping_indices[i] is None:
+                    zones_stopping_indices[i] = int(len(image_indices) - 1)
+                
+                pred_index = 0
+
+                for j in range(len(image_indices)):
+
+                    if j % p_every == 0:
                     
                         pred_label = 0 if float(zones_predictions[i][pred_index]) < 0.5 else 1
                         
                         critical_error = None
 
-                        if image_indices[j] <= min_margin_threshold and pred_label == 1:
+                        # TODO : revoir les conditions à ce niveau (erreur après seuil à ne plus afficher car arrêt)
+
+                        if image_indices[j] <= min_margin_threshold and image_indices[j] <= image_indices[zones_stopping_indices[i]]:
                             critical_error = 0 # no error
 
-                        if image_indices[j] >= max_margin_threshold and pred_label == 0:
+                        if image_indices[j] >= max_margin_threshold and image_indices[j] >= image_indices[zones_stopping_indices[i]]:
                             critical_error = 0
 
                         if image_indices[j] > min_margin_threshold and image_indices[j] < max_margin_threshold:
@@ -287,7 +332,7 @@ def main():
 
 
             # 6. display results
-            display_simulation_thresholds(scene_name, zones_predictions, human_thresholds[scene_name], image_indices, os.path.join(p_output, scene_name), scene_critical_predictions[scene_name], p_every, zones_learned[scene_name], p_margin)
+            display_simulation_thresholds(scene_name, zones_predictions, human_thresholds[scene_name], image_indices, os.path.join(p_output, scene_name), scene_critical_predictions[scene_name], p_every, zones_learned[scene_name], p_margin, zones_stopping_indices)
     
     print('Global percent is {0}%'.format(sum(global_percent) / len(global_percent)))
 

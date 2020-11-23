@@ -42,6 +42,7 @@ def main():
 
     parser.add_argument('--folders', type=str, help='folder with data predictions')
     parser.add_argument('--dataset', type=str, help='scenes dataset folder')
+    parser.add_argument('--nstops', type=str, help='number of expected correct stopping criteria for each model')
     parser.add_argument('--sequences', type=str, help='sequence length expected of each model')
     parser.add_argument('--thresholds', type=str, help='file which cantains all thresholds')
     parser.add_argument('--learned_zones', type=str, help="Filename which specifies if zones are learned or not and which zones", default="")
@@ -54,6 +55,7 @@ def main():
     p_folders  = [ f.strip() for f in args.folders.split(',') ]
     p_dataset  = args.dataset
     p_sequences = [ int(s.strip()) for s in args.sequences.split(',') ]
+    p_nstops = [ int(s.strip()) for s in args.nstops.split(',') ]
     p_thresholds = args.thresholds
     p_zones    = args.learned_zones
     p_every    = [ int(s.strip()) for s in args.every.split(',') ]
@@ -74,6 +76,7 @@ def main():
 
         every = p_every[index_f]
         sequence = p_sequences[index_f]
+        nstop = p_nstops[index_f]
 
         for margin in p_margins:
 
@@ -155,7 +158,13 @@ def main():
 
                     scene_critical_predictions[scene_name] = []
 
+                    counter_zones_predictions = []
+                    zones_stopping_indices = []
+
                     for i in range(len(zones_predictions)):
+
+                        counter_zones_predictions.append(0)
+                        zones_stopping_indices.append(None)
 
                         critical_predictions = []
 
@@ -170,7 +179,30 @@ def main():
                         # print(i, '=>', min_margin_threshold, human_thresholds[scene_name][i], max_margin_threshold)
 
                         pred_index = 0
-                        
+                
+                        for j in range(len(image_indices)):
+
+                            if j % every == 0:
+                                pred_label = 0 if float(zones_predictions[i][pred_index]) < 0.5 else 1
+
+                                if pred_label == 0:
+
+                                    counter_zones_predictions[i] += 1
+
+                                    # keeping in memory the current `j` which is the index used for detected image
+                                    if zones_stopping_indices[i] is None and counter_zones_predictions[i] >= nstop:
+                                        zones_stopping_indices[i] = j
+                                else:
+                                    counter_zones_predictions[i] = 0
+
+                                pred_index += 1
+
+                        if zones_stopping_indices[i] is None:
+                            zones_stopping_indices[i] = int(len(image_indices) - 1)
+
+                            
+                        pred_index = 0
+
                         for j in range(len(image_indices)):
 
                             if j % every == 0:
@@ -179,10 +211,12 @@ def main():
                                 
                                 critical_error = None
 
-                                if image_indices[j] <= min_margin_threshold and pred_label == 1:
+                                # TODO : revoir les conditions à ce niveau (erreur après seuil à ne plus afficher car arrêt)
+
+                                if image_indices[j] <= min_margin_threshold and image_indices[j] <= image_indices[zones_stopping_indices[i]]:
                                     critical_error = 0 # no error
 
-                                if image_indices[j] >= max_margin_threshold and pred_label == 0:
+                                if image_indices[j] >= max_margin_threshold and image_indices[j] >= image_indices[zones_stopping_indices[i]]:
                                     critical_error = 0
 
                                 if image_indices[j] > min_margin_threshold and image_indices[j] < max_margin_threshold:
