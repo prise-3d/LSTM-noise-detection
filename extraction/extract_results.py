@@ -85,8 +85,8 @@ output_values = sorted(output_values, key=lambda l:l[-1], reverse=True)
 
 # for each data
 for v in output_values[:20]:
-    output_f.write('\t{0} & {1} & {2} & {3} & {4} & {5} & {6} & {7:.4f} & {8:.4f} & {9:.4f} & {10:.4f} \\\\ \n' \
-        .format(v[0], int(v[1]), v[2], int(v[3]), int(v[4]), int(v[5]), int(v[6]), v[7], v[8], v[9], v[10]))
+    output_f.write('\t{0} & {1} & {2} & {3} & {4} & {5} & {6} & {7:.2f} \\% & {8:.2f} \\% & {9:.2f} \\% & {10:.2f} \\% \\\\ \n' \
+        .format(v[0], int(v[1]), v[2], int(v[3]), int(v[4]), int(v[5]), int(v[6]), v[7] * 100, v[8] * 100, v[9] * 100, v[10] * 100))
 
 output_f.write('\t\hline \n')
 output_f.write('\end{tabular} \n')

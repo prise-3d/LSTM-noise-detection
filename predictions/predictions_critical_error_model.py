@@ -56,7 +56,7 @@ def display_simulation_thresholds(scene, zones_predictions, humans, image_indice
 
     arr = np.array(critical_error).flatten()
     percent = np.count_nonzero(arr == 1, axis=0) / len(arr)
-    fig.suptitle("Detection simulation for {0} scene (margin: {1}%, error: {2:.3f}%)".format(scene, margin*100, percent*100), fontsize=26)
+    # fig.suptitle("Detection simulation for {0} scene (margin: {1}%, error: {2:.3f}%)".format(scene, margin*100, percent*100), fontsize=26)
             
     y_min_lim, y_max_lim = (-0.2, 1.2)
 
@@ -110,13 +110,14 @@ def display_simulation_thresholds(scene, zones_predictions, humans, image_indice
         plt.plot([current_thresholds_index, current_thresholds_index], [-2, 2], 'k-', lw=4, color='dimgray')
 
         #plt.axhspan(i, i+.2, facecolor='0.2', alpha=0.5)
-        plt.axvspan(min_counter_index, max_counter_index, facecolor='r', alpha=0.4)
+        # plt.axvspan(min_counter_index, max_counter_index, facecolor='r', alpha=0.4)
 
         #zone_percent = np.count_nonzero(np.array(critical_error[index]) == 1, axis=0) / len(critical_error[index])
 
         for i in range(len(critical_error[index])):
             if critical_error[index][i] == 1:
-                plt.axvspan(i, i + 1, facecolor='orange', alpha=0.2)
+                pass
+                #plt.axvspan(i, i + 1, facecolor='orange', alpha=0.2)
             else:
                 plt.axvspan(i, i + 1, facecolor='g', alpha=0.2)
 
@@ -129,11 +130,11 @@ def display_simulation_thresholds(scene, zones_predictions, humans, image_indice
         #     else:
         #         plt.axvspan(i, i + 1, facecolor='g', alpha=0.2)
 
-        if index % 4 == 0:
-            plt.ylabel('Not noisy / Noisy', fontsize=20)
+        # if index % 4 == 0:
+        plt.ylabel('Not noisy / Noisy', fontsize=20)
 
-        if index >= 12:
-            plt.xlabel('Samples per pixel', fontsize=20)
+        # if index >= 12:
+        plt.xlabel('Samples per pixel\n', fontsize=20)
 
         x_labels = [id * step_value + start_index for id, val in enumerate(predictions) if id % label_freq == 0]  + [10000]
         #x_labels = [id * step_value + start_index for id, val in enumerate(predictions) if id % label_freq == 0]
@@ -144,6 +145,8 @@ def display_simulation_thresholds(scene, zones_predictions, humans, image_indice
         plt.xticks(x, x_labels, rotation=45)
         #plt.yticks(y, y)
         plt.ylim(y_min_lim, y_max_lim)
+
+    fig.tight_layout(h_pad=2)
 
     plt.savefig(output + '.png')
     #plt.show()()
@@ -307,14 +310,14 @@ def main():
 
                         # TODO : revoir les conditions à ce niveau (erreur après seuil à ne plus afficher car arrêt)
 
-                        if image_indices[j] <= min_margin_threshold and image_indices[j] <= image_indices[zones_stopping_indices[i]]:
+                        if image_indices[j] <= human_thresholds[scene_name][i] and image_indices[j] <= image_indices[zones_stopping_indices[i]]:
                             critical_error = 0 # no error
 
-                        if image_indices[j] >= max_margin_threshold and image_indices[j] >= image_indices[zones_stopping_indices[i]]:
+                        if image_indices[j] >= human_thresholds[scene_name][i] and image_indices[j] >= image_indices[zones_stopping_indices[i]]:
                             critical_error = 0
 
-                        if image_indices[j] > min_margin_threshold and image_indices[j] < max_margin_threshold:
-                            critical_error = 0
+                        # if image_indices[j] > min_margin_threshold and image_indices[j] < max_margin_threshold:
+                        #     critical_error = 0
                         
                         if critical_error is None:
                             critical_error = 1
