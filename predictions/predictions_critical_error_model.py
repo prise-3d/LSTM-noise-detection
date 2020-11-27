@@ -116,19 +116,20 @@ def display_simulation_thresholds(scene, zones_predictions, humans, image_indice
 
         for i in range(len(critical_error[index])):
             if critical_error[index][i] == 1:
-                pass
-                #plt.axvspan(i, i + 1, facecolor='orange', alpha=0.2)
+                # pass
+                plt.axvspan(i, i + 1, facecolor='orange', alpha=0.2)
             else:
                 plt.axvspan(i, i + 1, facecolor='g', alpha=0.2)
+                # pass
 
-        # for i in range(len(critical_error[index])):
+        for i in range(len(critical_error[index])):
 
-        #     current_threshold_index = thresholds_indices[index]
+            current_threshold_index = thresholds_indices[index]
 
-        #     if current_threshold_index < i:
-        #         plt.axvspan(i, i + 1, facecolor='orange', alpha=0.2)
-        #     else:
-        #         plt.axvspan(i, i + 1, facecolor='g', alpha=0.2)
+            if current_threshold_index < i:
+                plt.axvspan(i, i + 1, facecolor='orange', alpha=0.2)
+            else:
+                plt.axvspan(i, i + 1, facecolor='g', alpha=0.2)
 
         # if index % 4 == 0:
         plt.ylabel('Not noisy / Noisy', fontsize=20)
