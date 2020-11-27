@@ -338,6 +338,16 @@ def _extracts_complexity_stats(image, params):
 
     return list(stats_attributes)
 
+def _extended_statistics(image, params):
+
+    first_part = _filters_statistics(image, params)
+    second_part = _extracts_complexity_stats(image, params)
+
+    for stat in second_part:
+        first_part.append(stat)
+
+    return list(first_part)
+
 def _filters_statistics(image, params):
 
     img_width, img_height = 200, 200
@@ -487,6 +497,9 @@ def extract_data(image, method, params = None):
     
     if method == 'filters_statistics_norm':
         return _filters_statistics_norm(image, params)
+
+    if method == 'extended_statistics':
+        return _extended_statistics(image, params)
 
     # no method found
     return None
