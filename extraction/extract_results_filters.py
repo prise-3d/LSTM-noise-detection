@@ -13,6 +13,8 @@ p_output  = args.output
 
 output_values = []
 
+every_default = 20
+
 with open(p_results, 'r') as f:
 
     lines = f.readlines()
@@ -39,13 +41,18 @@ with open(p_results, 'r') as f:
         if '_seqnorm_' in model_name:
             snorm = True
 
+        if 'every' in model_name:
+            every_param = int([ d for d in model_name.split('_') if 'every' in d ][0].replace('every','')) * every_default
+        else:
+            every_param = every_default
 
         output_line.append(sequence_size)
         # output_line.append((200 / w_size) * (200 / h_size))
         # output_line.append((sv_begin, sv_end))
         output_line.append(model_name.split('bsize')[-1])
-        # output_line.append(bnorm)
+        output_line.append(bnorm)
         output_line.append(snorm)
+        output_line.append(every_param)
         # 1, 3, 4, 6
         output_line.append(float(line[1]))
         output_line.append(float(line[3]))
@@ -57,17 +64,17 @@ with open(p_results, 'r') as f:
 
 output_f = open(p_output, 'w')
 
-output_f.write('\\begin{tabular}{|r|r|c|c|r|r|r|r|r|r|} \n')
+output_f.write('\\begin{tabular}{|r|r|c|c|c|r|r|r|} \n')
 output_f.write('\t\hline \n')
-output_f.write('\t\\textbf{$k$} & \\textbf{batch} & \\textbf{$snorm$} & \\textbf{Acc Train} & \\textbf{Acc Test} & \\textbf{AUC Train} & \\textbf{AUC Test} \\\\ \n')
+output_f.write('\t\\textbf{$k$} & \\textbf{batch} & \\textbf{$bnorm$} & \\textbf{$snorm$} & \\textbf{$n$ step} & \\textbf{Acc Train} & \\textbf{Acc Test} & \\textbf{AUC Train} & \\textbf{AUC Test} \\\\ \n')
 output_f.write('\t\hline \n')
 
 output_values = sorted(output_values, key=lambda l:l[-1], reverse=True)
 
 # for each data
 for v in output_values[:20]:
-    output_f.write('\t{0} & {1} & {2} & {3:.4f} & {4:.4f} & {5:.4f} & {6:.4f} \\\\ \n' \
-        .format(v[0], int(v[1]), int(v[2]), v[3], v[4], v[5],  v[6]))
+    output_f.write('\t{0} & {1} & {2} & {3} & {4} & {5:.2f} \\% & {6:.2f} \\% & {7:.2f} \\% & {8:.2f} \\% \\\\ \n' \
+        .format(v[0], int(v[1]), int(v[2]), int(v[3]), int(v[4]), v[5] * 100, v[6] * 100, v[7] * 100, v[8] * 100))
 
 output_f.write('\t\hline \n')
 output_f.write('\end{tabular} \n')

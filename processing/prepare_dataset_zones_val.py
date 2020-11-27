@@ -18,25 +18,6 @@ dataset_folder = cfg.dataset_path
 scenes_list    = cfg.scenes_names
 zones_indices  = cfg.zones_indices
 
-'''
-Display progress information as progress bar
-'''
-def write_progress(progress):
-    barWidth = 180
-
-    output_str = "["
-    pos = barWidth * progress
-    for i in range(barWidth):
-        if i < pos:
-           output_str = output_str + "="
-        elif i == pos:
-           output_str = output_str + ">"
-        else:
-            output_str = output_str + " "
-
-    output_str = output_str + "] " + str(int(progress * 100.0)) + " %\r"
-    print(output_str)
-    sys.stdout.write("\033[F")
 
 def save_learned_zones(output_name, scene, zones):
 
@@ -72,6 +53,7 @@ def main():
     parser.add_argument('--sequence', type=int, help='sequence length expected')
     parser.add_argument('--n_zones', type=int, help='number of zones used in train', default=0)
     parser.add_argument('--selected_zones', type=str, help='file with specific training zone')
+    parser.add_argument('--zones_val', type=int, help='number of zones for separated validation file', default=3)
     parser.add_argument('--seq_norm', type=int, help='normalization sequence by features', choices=[0, 1])
 
     args = parser.parse_args()
@@ -81,6 +63,7 @@ def main():
     p_sequence     = args.sequence
     p_n_zones      = args.n_zones
     p_selected_zones = args.selected_zones
+    p_zones_val    = args.zones_val
     p_seq_norm     = bool(args.seq_norm)
 
     learned_zones = None
@@ -104,6 +87,7 @@ def main():
     # create output path if not exists
     p_output_path = os.path.join(cfg.output_datasets, p_output)
     p_output_path_train = os.path.join(p_output_path, p_output + '.train')
+    p_output_path_val = os.path.join(p_output_path, p_output + '.val')
     p_output_path_test = os.path.join(p_output_path, p_output + '.test')
 
     if not os.path.exists(p_output_path):
@@ -111,6 +95,7 @@ def main():
 
     # read line by line file to estimate threshold entropy stopping criteria
     f_train = open(p_output_path_train, 'w')
+    f_val = open(p_output_path_val, 'w')
     f_test = open(p_output_path_test, 'w')
 
     zones = np.arange(16)
@@ -118,15 +103,13 @@ def main():
     with open(p_data, 'r') as f:
         lines = f.readlines()
 
-        nlines = len(lines)
-        ncounter = 0
-
         new_scene = False
         current_scene = None
         selected_zones = None
+        val_zones = None
 
         for line in lines:
-
+             
             data = line.split(';')
 
             # only if scene is used for training part
@@ -149,7 +132,8 @@ def main():
                     selected_zones = learned_zones[scene_name]
                 else:
                     selected_zones = get_random_zones(scene_name, zones, p_n_zones)
-
+                
+                val_zones = random.sample(list(selected_zones), k=p_zones_val)
                 save_learned_zones(p_output, scene_name, selected_zones)
 
             if scene_name != current_scene:
@@ -162,6 +146,7 @@ def main():
                 else:
                     selected_zones = get_random_zones(scene_name, zones, p_n_zones)
 
+                val_zones = random.sample(list(selected_zones), k=p_zones_val)
                 save_learned_zones(p_output, scene_name, selected_zones)
             else:
                 new_scene = False
@@ -175,8 +160,6 @@ def main():
                 # append new sequence
                 sequence_data.append(values)
 
-                # save additionnals information
-                # scene_name; zone_id; image_index_end; label; data
                 if i + 1 >= p_sequence:
 
                     label = int(threshold > int(index))
@@ -212,7 +195,9 @@ def main():
 
                     line += '\n'
 
-                    if zones_index in selected_zones:
+                    if zones_index in val_zones:
+                        f_val.write(line)
+                    elif zones_index in selected_zones:
                         f_train.write(line)
                     else:
                         f_test.write(line)
@@ -220,10 +205,8 @@ def main():
                     # del previous element
                     del sequence_data[0]
 
-            ncounter += 1
-            write_progress(float(ncounter / nlines))
-
     f_test.close()
+    f_val.close()
     f_train.close()    
     
 

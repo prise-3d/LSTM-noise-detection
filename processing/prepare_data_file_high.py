@@ -49,6 +49,7 @@ def main():
     parser.add_argument('--thresholds', type=str, help='file which contains all thresholds', required=True)
     parser.add_argument('--method', type=str, help='method name to used', choices=cfg.features_choices_labels, default=cfg.features_choices_labels[0])
     parser.add_argument('--params', type=str, help='param of the method used', default="", required=True)
+    parser.add_argument('--norm', type=int, help="specify if data are normalize or not", default=0, choices=[0, 1])
     parser.add_argument('--imnorm', type=int, help="specify if image is normalized before computing something", default=0, choices=[0, 1])
     parser.add_argument('--output', type=str, help='save computed data for each zone of each scene into file', required=True)
     parser.add_argument('--every', type=int, help="every images only", default=1)
@@ -60,6 +61,7 @@ def main():
     p_output     = args.output
     p_method     = args.method
     p_params     = args.params
+    p_norm       = args.norm
     p_imnorm     = args.imnorm
     p_every  = args.every
 
@@ -135,7 +137,10 @@ def main():
                 if img_index == 0:
                     highest_h_svd.append(data.copy())
 
-                norm_data = np.divide(data, highest_h_svd[index])
+                norm_data = list(np.divide(data, np.array(highest_h_svd[index]) + sys.float_info.epsilon))
+
+                if p_norm:
+                    norm_data = utils.normalize_arr_with_range(norm_data)
 
                 blocks_entropy[index].append(norm_data)
 

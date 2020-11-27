@@ -13,9 +13,9 @@ from ipfml import utils
 from keras.layers import Dense, Dropout, LSTM, Embedding, GRU, BatchNormalization
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import Sequential
+import keras
 from sklearn.metrics import roc_auc_score, accuracy_score
 import tensorflow as tf
-from keras import backend as K
 import sklearn
 from sklearn.model_selection import train_test_split
 
@@ -48,14 +48,28 @@ def build_input(df):
 
     return final_arr
 
+def build_label(x):
+    index = list(x).index(max(x))
+
+    output = []
+
+    for i in range(len(x)):
+        if index == i:
+            output.append(1)
+        else:
+            output.append(0)
+
+    return output
+
+
 def create_model(input_shape):
     print ('Creating model...')
     model = Sequential()
     #model.add(Embedding(input_dim = 1000, output_dim = 50, input_length=input_length))
-    model.add(LSTM(input_shape=input_shape, units=512, activation='sigmoid', recurrent_activation='hard_sigmoid', dropout=0.3, return_sequences=True))
-    model.add(LSTM(units=128, activation='sigmoid', recurrent_activation='hard_sigmoid', dropout=0.3, return_sequences=True))
-    model.add(LSTM(units=64, activation='sigmoid', dropout=0.3, recurrent_activation='hard_sigmoid'))
-    model.add(Dense(1, activation='sigmoid'))
+    model.add(LSTM(input_shape=input_shape, units=128, activation='sigmoid', recurrent_activation='hard_sigmoid', dropout=0.4, return_sequences=True))
+    model.add(LSTM(units=32, activation='sigmoid', recurrent_activation='hard_sigmoid', dropout=0.4, return_sequences=True))
+    model.add(LSTM(units=8, activation='sigmoid', dropout=0.4, recurrent_activation='hard_sigmoid'))
+    model.add(Dense(1, activation='softmax'))
 
     print ('Compiling...')
     model.compile(loss='binary_crossentropy',
@@ -90,27 +104,34 @@ def main():
     # getting weighted class over the whole dataset
     # line is composed of :: [scene_name; zone_id; image_index_end; label; data]
     noisy_df_train = dataset_train[dataset_train.iloc[:, 3] == 1]
-    not_noisy_df_train = dataset_train[dataset_train.iloc[:, 3] == 0]
+    interval_df_train = dataset_train[dataset_train.iloc[:, 3] == 0]
+    not_noisy_df_train = dataset_train[dataset_train.iloc[:, 3] == 2]
     nb_noisy_train = len(noisy_df_train.index)
+    nb_interval_train = len(interval_df_train.index)
     nb_not_noisy_train = len(not_noisy_df_train.index)
 
     noisy_df_test = dataset_test[dataset_test.iloc[:, 3] == 1]
+    interval_df_test = dataset_test[dataset_test.iloc[:, 3] == 2]
     not_noisy_df_test = dataset_test[dataset_test.iloc[:, 3] == 0]
     nb_noisy_test = len(noisy_df_test.index)
+    nb_interval_test = len(interval_df_test.index)
     nb_not_noisy_test = len(not_noisy_df_test.index)
 
     noisy_samples = nb_noisy_test + nb_noisy_train
+    interval_samples = nb_interval_test + nb_interval_train
     not_noisy_samples = nb_not_noisy_test + nb_not_noisy_train
 
     total_samples = noisy_samples + not_noisy_samples
 
     print('noisy', noisy_samples)
+    print('interval', interval_samples)
     print('not_noisy', not_noisy_samples)
     print('total', total_samples)
 
     class_weight = {
         0: noisy_samples / float(total_samples),
         1: (not_noisy_samples / float(total_samples)),
+        #2: (interval_samples / float(total_samples)),
     }
 
     # shuffle data
@@ -118,13 +139,17 @@ def main():
     final_df_test = sklearn.utils.shuffle(dataset_test)
 
     # split dataset into X_train, y_train, X_test, y_test
-    X_train_all = final_df_train.loc[:, 4:].apply(lambda x: x.astype(str).str.split(' '))
+    filtered_df_train = final_df_train[final_df_train.iloc[:, 3] != 2]
+    X_train_all = filtered_df_train.loc[:, 4:].apply(lambda x: x.astype(str).str.split(' '))
     X_train_all = build_input(X_train_all)
-    y_train_all = final_df_train.loc[:, 3].astype('int')
+    y_train_all = filtered_df_train.loc[:, 3].astype('int')
+    #y_train_all = tf.keras.utils.to_categorical(final_df_train.loc[:, 3], num_classes=3)
 
-    X_test = final_df_test.loc[:, 4:].apply(lambda x: x.astype(str).str.split(' '))
+    filtered_df_test = final_df_test[final_df_test.iloc[:, 3] != 2]
+    X_test = filtered_df_test.loc[:, 4:].apply(lambda x: x.astype(str).str.split(' '))
     X_test = build_input(X_test)
-    y_test = final_df_test.loc[:, 3].astype('int')
+    y_test = filtered_df_test.loc[:, 3].astype('int')
+    #y_test = tf.keras.utils.to_categorical(final_df_test.loc[:, 3], num_classes=3)
 
     input_shape = (X_train_all.shape[1], X_train_all.shape[2])
     print('Training data input shape', input_shape)
@@ -159,6 +184,7 @@ def main():
     # train_score, train_acc = model.evaluate(X_train, y_train, batch_size=1)
 
     # print(train_acc)
+    # TODO: improve this part
     y_train_predict = [ 1 if x > 0.5 else 0 for x in model.predict(X_train) ]
     y_val_predict = [ 1 if x > 0.5 else 0 for x in model.predict(X_val) ]
     y_test_predict = [ 1 if x > 0.5 else 0 for x in model.predict(X_test) ]

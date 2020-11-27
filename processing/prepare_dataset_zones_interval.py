@@ -69,6 +69,7 @@ def main():
 
     parser.add_argument('--data', type=str, help='file data to read and compute')
     parser.add_argument('--output', type=str, help='output dataset prefix file used (saved into .train and .test extension)')
+    parser.add_argument('--thresholds', type=str, help='file which contains all thresholds with min max values', required=True)
     parser.add_argument('--sequence', type=int, help='sequence length expected')
     parser.add_argument('--n_zones', type=int, help='number of zones used in train', default=0)
     parser.add_argument('--selected_zones', type=str, help='file with specific training zone')
@@ -78,6 +79,7 @@ def main():
 
     p_data         = args.data
     p_output       = args.output
+    p_thresholds   = args.thresholds
     p_sequence     = args.sequence
     p_n_zones      = args.n_zones
     p_selected_zones = args.selected_zones
@@ -100,6 +102,21 @@ def main():
                 learned_zones[data[0]] = [ int(d) for d in data[1:] ]
     else:
         print("Number of zones used in train:", p_n_zones)
+
+    thresholds = {}
+
+    with open(p_thresholds) as f:
+        thresholds_line = f.readlines()
+
+        for line in thresholds_line:
+            data = line.split(';')
+            del data[-1] # remove unused last element `\n`
+            scene = data[0]
+            thresholds_scene = [ list(map(int, l.split(' '))) for l in data[1:] ]
+
+            thresholds[scene] = thresholds_scene
+
+    print(thresholds)
 
     # create output path if not exists
     p_output_path = os.path.join(cfg.output_datasets, p_output)
@@ -132,7 +149,7 @@ def main():
             # only if scene is used for training part
             scene_name = data[0]
             zones_index = int(data[1])
-            threshold = int(data[3])
+            #threshold = int(data[3])
             image_indices = data[4].split(',')
             values_list = data[5].split(',')
 
@@ -178,8 +195,15 @@ def main():
                 # save additionnals information
                 # scene_name; zone_id; image_index_end; label; data
                 if i + 1 >= p_sequence:
-
-                    label = int(threshold > int(index))
+                    
+                    # check before min
+                    if int(index) <= thresholds[scene_name][zones_index][0]:
+                        label = 1
+                    # check after max
+                    elif int(index) > thresholds[scene_name][zones_index][-1]:
+                        label = 0
+                    else:
+                        label = 2 # transition label between noisy and not noisy (min and max) (incertitude part)
 
                     line = scene_name + ';'
                     line += str(zones_index) + ';'
