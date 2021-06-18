@@ -115,7 +115,7 @@ def main():
 
         f = open(output_file, 'w')
         for i, data in enumerate(blocks_predictions):
-            f.write(scene_name + ';')
+            f.write(key + ';')
             f.write(str(i) + ';')
 
             for v in data:
