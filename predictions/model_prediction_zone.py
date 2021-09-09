@@ -138,6 +138,7 @@ def main():
     parser.add_argument('--zone', type=int, help='zone index to use')
     parser.add_argument('--seq_norm', type=int, help='normalization sequence by features', choices=[0, 1])
     parser.add_argument('--every', type=int, help="every images only", default=1)
+    parser.add_argument('--threshold', type=int, help="Expected thresholds for targeted zone", default=1000)
     parser.add_argument('--output', type=str, help="output prediction file")
 
     args = parser.parse_args()
@@ -150,7 +151,8 @@ def main():
     p_scene      = args.scene
     p_zone       = args.zone
     p_seq_norm   = bool(args.seq_norm)
-    p_every  = args.every
+    p_every      = args.every
+    p_threshold  = args.threshold
     p_output     = args.output
 
 
@@ -235,8 +237,9 @@ def main():
     for i, data in enumerate(blocks_predictions):
         f.write(str(data) + ';')    
     f.write('\n')
-
-    display_simulation_thresholds(blocks_predictions, None, image_indices, os.path.join(p_output, 'figure'), p_every)
+    
+    # default set threshold
+    display_simulation_thresholds(blocks_predictions, p_threshold, image_indices, os.path.join(p_output, 'figure'), p_every)
 
 if __name__== "__main__":
     main()
