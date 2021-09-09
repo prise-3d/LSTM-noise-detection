@@ -239,7 +239,7 @@ def main():
     f.write('\n')
     
     # default set threshold
-    display_simulation_thresholds(blocks_predictions, p_threshold, image_indices, os.path.join(p_output, 'figure'), p_every)
+    display_simulation_thresholds(blocks_predictions, p_threshold, image_indices, p_output + '_figure', p_every)
 
 if __name__== "__main__":
     main()
