@@ -89,8 +89,8 @@ def display_simulation_thresholds(predictions_data, human_threshold, image_indic
         counter_index += 1
         current_value += step_value
 
-    plt.plot(predictions, lw=2)
-    plt.plot(predictions_label, linestyle='--', color='slategray', lw=2)
+    plt.plot(predictions, lw=4)
+    plt.plot(predictions_label, linestyle='--', color='slategray', lw=4)
     #plt.imshow(blocks[index], extent=[0, len(predictions), y_min_lim, y_max_lim])
 
     # if zones_learned is not None:
@@ -99,14 +99,14 @@ def display_simulation_thresholds(predictions_data, human_threshold, image_indic
             # ax.set_facecolor((0.9, 0.95, 0.95))
 
     # draw vertical line from (70,100) to (70, 250)
-    plt.plot([counter_index, counter_index], [-2, 2], 'k-', lw=4, color='red')
-    plt.plot([threshold_model, threshold_model], [-2, 2], 'k-', lw=3, color='blue')
+    plt.plot([counter_index, counter_index], [-2, 2], 'k-', lw=6, color='red')
+    plt.plot([threshold_model, threshold_model], [-2, 2], 'k-', lw=5, color='blue')
 
 #        if index % 4 == 0:
-    plt.ylabel('Not noisy / Noisy', fontsize=26)
+    plt.ylabel('Not noisy / Noisy', fontsize=30)
 
 #        if index >= 12:
-    plt.xlabel('Samples per pixel', fontsize=26)
+    plt.xlabel('Samples per pixel', fontsize=30)
 
     x_labels = [id * step_value + start_index for id, val in enumerate(predictions) if id % label_freq == 0]  + [10000]
     #x_labels = [id * step_value + start_index for id, val in enumerate(predictions) if id % label_freq == 0]
@@ -114,11 +114,11 @@ def display_simulation_thresholds(predictions_data, human_threshold, image_indic
     x = [v for v in np.arange(0, len(predictions)) if v % label_freq == 0] + [int(10000 / (20 * every))]
     y = np.arange(-1, 2, 10)
 
-    plt.xticks(x, x_labels, rotation=45, fontsize=16)
+    plt.xticks(x, x_labels, rotation=45, fontsize=24)
     
     ax = plt.gca()
     for label in (ax.get_xticklabels() + ax.get_yticklabels()):
-        label.set_fontsize(16)
+        label.set_fontsize(24)
 
     plt.ylim(y_min_lim, y_max_lim)
 
