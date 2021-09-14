@@ -113,7 +113,7 @@ def display_simulation_thresholds(predictions_data, human_threshold, image_indic
 #        if index >= 12:
     plt.xlabel('Samples per pixel', fontsize=30)
 
-    x_labels = [specific_display_label(str(id * step_value + start_index)) for id, val in enumerate(predictions) if id % label_freq == 0]  + [nsamples]
+    x_labels = [specific_display_label(str(id * step_value + start_index)) for id, val in enumerate(predictions) if id % label_freq == 0]  + [specific_display_label(str(nsamples))]
     #x_labels = [id * step_value + start_index for id, val in enumerate(predictions) if id % label_freq == 0]
 
     x = [v for v in np.arange(0, len(predictions)) if v % label_freq == 0] + [int(nsamples / (20 * every))]
