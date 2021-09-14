@@ -45,7 +45,12 @@ def write_progress(progress):
     print(output_str)
     sys.stdout.write("\033[F")
 
-def display_simulation_thresholds(predictions_data, human_threshold, image_indices, output, every=None):
+def specific_display_label(label, chunk_size=3):
+    label = label[::-1] # reverse label
+    labels = [ label[i:i+chunk_size] for i in range(0, len(label), chunk_size) ]
+    return ' '.join(labels)[::-1]
+
+def display_simulation_thresholds(predictions_data, human_threshold, image_indices, output, nsamples, every=None):
 
     # get reference image
     fig =plt.figure(figsize=(35, 22))
@@ -60,8 +65,8 @@ def display_simulation_thresholds(predictions_data, human_threshold, image_indic
     if every is not None:
         step_value = every * step_value
     
-    if every == 1:
-        label_freq = 2 * label_freq
+    # if every >= 1:
+    label_freq = 2 * label_freq
 
     y_min_lim, y_max_lim = (-0.2, 1.2)
 
@@ -108,10 +113,10 @@ def display_simulation_thresholds(predictions_data, human_threshold, image_indic
 #        if index >= 12:
     plt.xlabel('Samples per pixel', fontsize=30)
 
-    x_labels = [id * step_value + start_index for id, val in enumerate(predictions) if id % label_freq == 0]  + [10000]
+    x_labels = [specific_display_label(str(id * step_value + start_index)) for id, val in enumerate(predictions) if id % label_freq == 0]  + [nsamples]
     #x_labels = [id * step_value + start_index for id, val in enumerate(predictions) if id % label_freq == 0]
 
-    x = [v for v in np.arange(0, len(predictions)) if v % label_freq == 0] + [int(10000 / (20 * every))]
+    x = [v for v in np.arange(0, len(predictions)) if v % label_freq == 0] + [int(nsamples / (20 * every))]
     y = np.arange(-1, 2, 10)
 
     plt.xticks(x, x_labels, rotation=45, fontsize=24)
@@ -140,6 +145,7 @@ def main():
     parser.add_argument('--every', type=int, help="every images only", default=1)
     parser.add_argument('--threshold', type=int, help="Expected thresholds for targeted zone", default=1000)
     parser.add_argument('--output', type=str, help="output prediction file")
+    parser.add_argument('--nsamples', type=int, help="max number of samples")
 
     args = parser.parse_args()
 
@@ -154,6 +160,7 @@ def main():
     p_every      = args.every
     p_threshold  = args.threshold
     p_output     = args.output
+    p_nsamples   = args.nsamples
 
 
     # scene path by default
@@ -239,7 +246,7 @@ def main():
     f.write('\n')
     
     # default set threshold
-    display_simulation_thresholds(blocks_predictions, p_threshold, image_indices, p_output + '_figure', p_every)
+    display_simulation_thresholds(blocks_predictions, p_threshold, image_indices, p_output + '_figure', p_nsamples, p_every)
 
 if __name__== "__main__":
     main()
