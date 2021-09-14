@@ -56,11 +56,11 @@ def display_simulation_thresholds(predictions_data, human_threshold, image_indic
     fig =plt.figure(figsize=(35, 22))
     # fig.suptitle("Detection simulation for " + scene + " scene", fontsize=20)
 
-    label_freq = 15
-
     # dataset information
     start_index = int(image_indices[1]) - int(image_indices[0])
     step_value = int(image_indices[1]) - int(image_indices[0])
+
+    label_freq = nsamples / step_value / 100 * 2
 
     if every is not None:
         step_value = every * step_value
@@ -104,7 +104,7 @@ def display_simulation_thresholds(predictions_data, human_threshold, image_indic
             # ax.set_facecolor((0.9, 0.95, 0.95))
 
     # draw vertical line from (70,100) to (70, 250)
-    plt.plot([counter_index, counter_index], [-2, 2], 'k-', lw=6, color='red')
+    # plt.plot([counter_index, counter_index], [-2, 2], 'k-', lw=6, color='red')
     plt.plot([threshold_model, threshold_model], [-2, 2], 'k-', lw=5, color='blue')
 
 #        if index % 4 == 0:
