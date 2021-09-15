@@ -108,10 +108,10 @@ def display_simulation_thresholds(predictions_data, human_threshold, image_indic
     plt.plot([threshold_model, threshold_model], [-2, 2], 'k-', lw=5, color='blue')
 
 #        if index % 4 == 0:
-    plt.ylabel('Not noisy / Noisy', fontsize=30)
+    plt.ylabel('Bruité / Non bruité', fontsize=30)
 
 #        if index >= 12:
-    plt.xlabel('Samples per pixel', fontsize=30)
+    plt.xlabel('échantillons par pixel', fontsize=30)
 
     x_labels = [specific_display_label(str(id * step_value + start_index)) for id, val in enumerate(predictions) if id % label_freq == 0]  + [specific_display_label(str(nsamples))]
     #x_labels = [id * step_value + start_index for id, val in enumerate(predictions) if id % label_freq == 0]
