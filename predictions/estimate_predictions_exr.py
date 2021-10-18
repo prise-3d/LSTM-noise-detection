@@ -112,9 +112,9 @@ def main():
     p_sequence   = args.sequence
     p_imnorm     = args.imnorm
     p_dataset    = args.dataset
-    p_scenes      = args.scenes
+    p_scenes     = args.scenes
     p_seq_norm   = bool(args.seq_norm)
-    p_every  = args.every
+    p_every      = args.every
     p_output     = args.output
 
 
@@ -157,7 +157,7 @@ def main():
 
         # append empty list
 
-        for img_i, img_path in enumerate(images_names):
+        for img_i, img_path in enumerate(scenes_images):
 
             block = read_image(img_path)
    
