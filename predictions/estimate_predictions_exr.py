@@ -78,7 +78,7 @@ def read_image(img_path):
         img_data = np.array(img_data / np.max(img_data), 'float32')
 
         img_data = get_center_image(img_data)
-        img_data = np.moveaxis(img_data, -1, 0)
+        img_data = np.moveaxis(img_data, 0, -1)
 
         return img_data
             
