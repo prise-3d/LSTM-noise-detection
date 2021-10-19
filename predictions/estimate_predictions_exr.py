@@ -153,7 +153,7 @@ def main():
             scenes_images.append(img_path)
    
         blocks_sequence = []
-        blocks_predictions = []
+        # blocks_predictions = []
         image_counter = 0
 
         # append empty list
@@ -191,7 +191,7 @@ def main():
                 prob = model.predict(data, batch_size=1)[0][0]
                 #print(index, ':', image_indices[img_i], '=>', prob)
 
-                blocks_predictions.append(prob)
+                model_predictions.append(prob)
 
                 #print('Block @', index, ':', len(blocks_sequence[index]))
                 # delete first element (just like sliding window)
