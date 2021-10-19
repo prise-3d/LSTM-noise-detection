@@ -60,6 +60,7 @@ def main():
     p_zones    = args.learned_zones
     p_every    = [ int(s.strip()) for s in args.every.split(',') ]
     p_margins   = [ float(m.strip()) for m in args.margins.split(',') ]
+    print(f'Selected margins: {p_margins}')
     p_output   = args.output
 
     if not os.path.exists(p_output):
@@ -89,10 +90,12 @@ def main():
             # construct zones folder
             with open(p_thresholds) as f:
                 thresholds_line = f.readlines()
-
+                
                 for line in thresholds_line:
                     data = line.split(';')
+                    
                     del data[-1] # remove unused last element `\n`
+
                     current_scene = data[0]
                     thresholds_scene = data[1:]
 
@@ -233,6 +236,7 @@ def main():
 
                     arr = np.array(scene_critical_predictions[scene_name]).flatten()
                     percent = np.count_nonzero(arr == 1, axis=0) / len(arr)
+                    
                     global_percent.append(percent)
                     print('[margin: {0}] Critical percent error on {1} is {2:.3f}%'.format(margin, scene_name, percent * 100))
             
@@ -250,7 +254,7 @@ def main():
             
             model_predictions = []
             for key_scene, predictions  in scenes.items():
-                print(key_scene)
+                #print(key_scene)
 
                 if key_scene not in scene_predictions:
                     scene_predictions[key_scene] = []
