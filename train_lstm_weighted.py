@@ -49,6 +49,7 @@ def build_input(df):
     return final_arr
 
 def create_model(input_shape):
+
     print ('Creating model...')
     model = Sequential()
     #model.add(Embedding(input_dim = 1000, output_dim = 50, input_length=input_length))
@@ -139,6 +140,21 @@ def main():
 
     # list all data in history
     print(history.history.keys())
+
+    # store KPI into file
+    if not os.path.exists(cfg.output_kpi):
+        os.makedirs(cfg.output_kpi)
+
+    kpi_filename = os.path.join(cfg.output_kpi, p_output + '.csv')
+
+    with open(results_filename_path, 'w') as f:
+
+        for key in ['accuracy', 'val_accuracy', 'loss', 'val_loss']:
+            f.write(key)
+            for acc in history.history[key]:
+                f.write(f';{acc}')
+            f.write('\n')
+
     # summarize history for accuracy
     # plt.plot(history.history['accuracy'])
     # plt.plot(history.history['val_accuracy'])
