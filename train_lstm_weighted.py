@@ -77,7 +77,7 @@ def create_model(input_shape):
     print ('Compiling...')
     model.compile(loss='binary_crossentropy',
                   optimizer='rmsprop',
-                  metrics=['accuracy', 'loss', 'val_accuracy', 'val_loss'])
+                  metrics=['accuracy'])
 
     return model
 
