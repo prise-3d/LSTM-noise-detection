@@ -31,8 +31,10 @@ class DataHistory(keras.callbacks.Callback):
 
     def on_batch_end(self, batch, logs={}):
         self.accuracy.append(logs.get('accuracy'))
-        self.val_accuracy.append(logs.get('val_accuracy'))
         self.losses.append(logs.get('loss'))
+
+    def on_epoch_end(self, epoch, logs={}):
+        self.val_accuracy.append(logs.get('val_accuracy'))
         self.val_losses.append(logs.get('val_loss'))
 
 
@@ -172,9 +174,9 @@ def main():
 
     with open(kpi_filename, 'w') as f:
 
-        for p, values in vars(history).items():
-            f.write(p)
-            for v in values:
+        for key in ["accuracy", "val_accuracy", "loss", "val_loss"]:
+            f.write(key)
+            for v in history.history[key]:
                 f.write(f';{v}')
             f.write('\n')
 
