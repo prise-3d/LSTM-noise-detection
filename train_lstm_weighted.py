@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from ipfml import utils
 
 # dl imports
+import keras
 from keras.layers import Dense, Dropout, LSTM, Embedding, GRU, BatchNormalization
 from keras.preprocessing.sequence import pad_sequences
 from keras.models import Sequential
@@ -20,6 +21,19 @@ import sklearn
 from sklearn.model_selection import train_test_split
 
 import custom_config as cfg
+
+class DataHistory(keras.callbacks.Callback):
+    def on_train_begin(self, logs={}):
+        self.accuracy = []
+        self.val_accuracy = []
+        self.losses = []
+        self.val_losses = []
+
+    def on_batch_end(self, batch, logs={}):
+        self.accuracy.append(logs.get('accuracy'))
+        self.val_accuracy.append(logs.get('val_accuracy'))
+        self.losses.append(logs.get('loss'))
+        self.val_losses.append(logs.get('val_loss'))
 
 
 def build_input(df):
@@ -48,7 +62,7 @@ def build_input(df):
 
     return final_arr
 
-def create_model(input_shape):
+def create_model(input_shape, history):
 
     print ('Creating model...')
     model = Sequential()
@@ -62,7 +76,8 @@ def create_model(input_shape):
     model.compile(loss='binary_crossentropy',
                   optimizer='rmsprop',
                   #metrics=['accuracy', tf.keras.metrics.AUC()])
-                  metrics=['accuracy'])
+                  metrics=['accuracy'],
+                  callbacks=[history])
 
     return model
 
@@ -127,19 +142,22 @@ def main():
     X_test = build_input(X_test)
     y_test = final_df_test.loc[:, 3].astype('int')
 
+    # keep track of data...
+    history = DataHistory()
+
     input_shape = (X_train_all.shape[1], X_train_all.shape[2])
     print('Training data input shape', input_shape)
-    model = create_model(input_shape)
+    model = create_model(input_shape, history)
     model.summary()
 
     # prepare train and validation dataset
     X_train, X_val, y_train, y_val = train_test_split(X_train_all, y_train_all, test_size=0.3, shuffle=False)
 
     print("Fitting model with custom class_weight", class_weight)
-    history = model.fit(X_train, y_train, batch_size=p_batch_size, epochs=p_epochs, validation_data=(X_val, y_val), verbose=1, shuffle=True, class_weight=class_weight)
+    model.fit(X_train, y_train, batch_size=p_batch_size, epochs=p_epochs, validation_data=(X_val, y_val), verbose=1, shuffle=True, class_weight=class_weight)
 
     # list all data in history
-    print(history.history.keys())
+    print(vars(history))
 
     # store KPI into file
     if not os.path.exists(cfg.output_kpi):
@@ -149,10 +167,10 @@ def main():
 
     with open(kpi_filename, 'w') as f:
 
-        for key in ['accuracy', 'val_accuracy', 'loss', 'val_loss']:
-            f.write(key)
-            for acc in history.history[key]:
-                f.write(f';{acc}')
+        for p, values in vars(history).items():
+            f.write(p)
+            for v in values:
+                f.write(f';{v}')
             f.write('\n')
 
     # summarize history for accuracy
