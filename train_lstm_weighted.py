@@ -75,8 +75,7 @@ def create_model(input_shape):
     print ('Compiling...')
     model.compile(loss='binary_crossentropy',
                   optimizer='rmsprop',
-                  #metrics=['accuracy', tf.keras.metrics.AUC()])
-                  metrics=['accuracy'])
+                  metrics=['accuracy', 'loss', 'val_accuracy', 'val_loss'])
 
     return model
 
