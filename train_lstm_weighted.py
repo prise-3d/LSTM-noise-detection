@@ -62,7 +62,7 @@ def build_input(df):
 
     return final_arr
 
-def create_model(input_shape, history):
+def create_model(input_shape):
 
     print ('Creating model...')
     model = Sequential()
@@ -76,8 +76,7 @@ def create_model(input_shape, history):
     model.compile(loss='binary_crossentropy',
                   optimizer='rmsprop',
                   #metrics=['accuracy', tf.keras.metrics.AUC()])
-                  metrics=['accuracy'],
-                  callbacks=[history])
+                  metrics=['accuracy'])
 
     return model
 
@@ -147,14 +146,21 @@ def main():
 
     input_shape = (X_train_all.shape[1], X_train_all.shape[2])
     print('Training data input shape', input_shape)
-    model = create_model(input_shape, history)
+    model = create_model(input_shape)
     model.summary()
 
     # prepare train and validation dataset
     X_train, X_val, y_train, y_val = train_test_split(X_train_all, y_train_all, test_size=0.3, shuffle=False)
 
     print("Fitting model with custom class_weight", class_weight)
-    model.fit(X_train, y_train, batch_size=p_batch_size, epochs=p_epochs, validation_data=(X_val, y_val), verbose=1, shuffle=True, class_weight=class_weight)
+    model.fit(X_train, y_train, 
+                batch_size=p_batch_size, 
+                epochs=p_epochs, 
+                validation_data=(X_val, y_val), 
+                verbose=1, 
+                shuffle=True, 
+                class_weight=class_weight, 
+                callbacks=[history])
 
     # list all data in history
     print(vars(history))
