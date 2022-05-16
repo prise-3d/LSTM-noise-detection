@@ -24,18 +24,19 @@ import custom_config as cfg
 
 class DataHistory(keras.callbacks.Callback):
     def on_train_begin(self, logs={}):
-        self.accuracy = []
-        self.val_accuracy = []
-        self.losses = []
-        self.val_losses = []
+        self.history = {}
+        self.history['accuracy'] = []
+        self.history['val_accuracy'] = []
+        self.history['losses'] = []
+        self.history['val_losses'] = []
 
     def on_batch_end(self, batch, logs={}):
-        self.accuracy.append(logs.get('accuracy'))
-        self.losses.append(logs.get('loss'))
+        self.history['accuracy'].append(logs.get('accuracy'))
+        self.history['losses'].append(logs.get('loss'))
 
     def on_epoch_end(self, epoch, logs={}):
-        self.val_accuracy.append(logs.get('val_accuracy'))
-        self.val_losses.append(logs.get('val_loss'))
+        self.history['val_accuracy'].append(logs.get('val_accuracy'))
+        self.history['val_losses'].append(logs.get('val_loss'))
 
 
 def build_input(df):
@@ -164,7 +165,7 @@ def main():
                 callbacks=[history])
 
     # list all data in history
-    print(vars(history))
+    print(history.history.keys())
 
     # store KPI into file
     if not os.path.exists(cfg.output_kpi):
@@ -174,7 +175,7 @@ def main():
 
     with open(kpi_filename, 'w') as f:
 
-        for key in ["accuracy", "val_accuracy", "loss", "val_loss"]:
+        for key in history.history.keys():
             f.write(key)
             for v in history.history[key]:
                 f.write(f';{v}')
