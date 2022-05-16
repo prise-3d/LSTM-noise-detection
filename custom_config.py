@@ -15,6 +15,7 @@ output_results_folder           = os.path.join(output_data_folder, 'results')
 output_zones_learned            = os.path.join(output_data_folder, 'learned_zones')
 output_models                   = os.path.join(output_data_folder, 'saved_models')
 output_figures                  = os.path.join(output_data_folder, 'figures')
+output_kpi                      = os.path.join(output_data_folder, 'kpi')
 output_data_scaler              = os.path.join(output_data_folder, 'scaler')
 ## noisy_folder                    = 'noisy'
 ## not_noisy_folder                = 'notNoisy'
