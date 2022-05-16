@@ -147,7 +147,7 @@ def main():
 
     kpi_filename = os.path.join(cfg.output_kpi, p_output + '.csv')
 
-    with open(results_filename_path, 'w') as f:
+    with open(kpi_filename, 'w') as f:
 
         for key in ['accuracy', 'val_accuracy', 'loss', 'val_loss']:
             f.write(key)

@@ -62,7 +62,7 @@ python processing/prepare_dataset_zones.py --data data/generated/output --select
 You can now use your dataset to train your model:
 
 ```bash
-python train_lstm_weighted_v2.py --train data/datasets/dataset/dataset.train --test data/datasets/dataset/dataset.train --output modelv1 --seq_norm 1
+python train_lstm_weighted.py --train data/datasets/dataset/dataset.train --test data/datasets/dataset/dataset.train --output modelv1 --seq_norm 1
 ```
 
 - `--data`: specify the dataset name (without .train and .test generated extension) obtained from previous script.
@@ -70,7 +70,6 @@ python train_lstm_weighted_v2.py --train data/datasets/dataset/dataset.train --t
 - `--seq_norm`: set normalization of data by feature for sequence
 
 ## Simulations
-
 
 ### Obtained model simulation on scene
 
