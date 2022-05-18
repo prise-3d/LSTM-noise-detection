@@ -27,15 +27,19 @@ class DataHistory(keras.callbacks.Callback):
         self.history = {}
         self.history['accuracy'] = []
         self.history['val_accuracy'] = []
+        self.history['auc'] = []
+        self.history['val_auc'] = []
         self.history['losses'] = []
         self.history['val_losses'] = []
 
     def on_batch_end(self, batch, logs={}):
         self.history['accuracy'].append(logs.get('accuracy'))
+        self.history['auc'].append(logs.get('auc'))
         self.history['losses'].append(logs.get('loss'))
 
     def on_epoch_end(self, epoch, logs={}):
         self.history['val_accuracy'].append(logs.get('val_accuracy'))
+        self.history['val_auc'].append(logs.get('val_auc'))
         self.history['val_losses'].append(logs.get('val_loss'))
 
 
@@ -70,15 +74,15 @@ def create_model(input_shape):
     print ('Creating model...')
     model = Sequential()
     #model.add(Embedding(input_dim = 1000, output_dim = 50, input_length=input_length))
-    model.add(LSTM(input_shape=input_shape, units=512, activation='sigmoid', recurrent_activation='hard_sigmoid', dropout=0.3, return_sequences=True))
-    model.add(LSTM(units=128, activation='sigmoid', recurrent_activation='hard_sigmoid', dropout=0.3, return_sequences=True))
-    model.add(LSTM(units=64, activation='sigmoid', dropout=0.3, recurrent_activation='hard_sigmoid'))
+    model.add(LSTM(input_shape=input_shape, units=512, activation='sigmoid', recurrent_activation='hard_sigmoid', dropout=0.4, return_sequences=True))
+    model.add(LSTM(units=128, activation='sigmoid', recurrent_activation='hard_sigmoid', dropout=0.4, return_sequences=True))
+    model.add(LSTM(units=32, activation='sigmoid', dropout=0.4, recurrent_activation='hard_sigmoid'))
     model.add(Dense(1, activation='sigmoid'))
 
     print ('Compiling...')
     model.compile(loss='binary_crossentropy',
                   optimizer='rmsprop',
-                  metrics=['accuracy'])
+                  metrics=['accuracy', tf.keras.metrics.AUC()])
 
     return model
 
